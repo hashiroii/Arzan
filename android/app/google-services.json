@@ -12,7 +12,20 @@
           "package_name": "com.example.arzan"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "329383398566-ps8c1kh283hi1tbf9i0sv44cm47k2q2d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.arzan",
+            "certificate_hash": "5447a675a7cf314ae6543a26b1c542a8e50f9b0c"
+          }
+        },
+        {
+          "client_id": "329383398566-dpatq5tsesdkdm671f6ndlqkjsn770ju.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB9SVmMHn4aPuB96VPsFwmKiAtOtRnwts8"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "329383398566-dpatq5tsesdkdm671f6ndlqkjsn770ju.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "329383398566-e1fminoq057nvi3esnmogrt42gm2pm0j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.arzan"
+              }
+            }
+          ]
         }
       }
     }

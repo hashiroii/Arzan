@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/promo_code_card.dart';
 import '../providers/promo_code_provider.dart';
 import '../widgets/banner_widget.dart';
 import '../widgets/filter_chips_widget.dart';
 import '../widgets/sort_dropdown.dart';
-import '../../domain/entities/promo_code.dart';
-import '../../domain/usecases/vote_promo_code.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'details_page.dart';
 import 'post_page.dart';
@@ -36,7 +33,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.9) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.9) {
       ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes();
     }
   }
@@ -44,9 +42,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _handleVote(String promoCodeId, bool isUpvote) async {
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in to vote')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please sign in to vote')));
       return;
     }
 
@@ -56,7 +54,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     final promoCodeList = ref.read(promoCodesNotifierProvider).value;
     if (promoCodeList == null) return;
-    
+
     final promoCode = promoCodeList.firstWhere(
       (code) => code.id == promoCodeId,
       orElse: () => promoCodeList.first, // Fallback
@@ -97,32 +95,39 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
+          ref
+              .read(promoCodesNotifierProvider.notifier)
+              .loadPromoCodes(refresh: true);
         },
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
             // Banner
-            SliverToBoxAdapter(
-              child: BannerWidget(),
-            ),
+            SliverToBoxAdapter(child: BannerWidget()),
 
             // Filter chips and sort
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     Expanded(
                       child: FilterChipsWidget(
                         onFilterChanged: (service) {
-                          ref.read(promoCodesNotifierProvider.notifier).setFilter(service);
+                          ref
+                              .read(promoCodesNotifierProvider.notifier)
+                              .setFilter(service);
                         },
                       ),
                     ),
                     SortDropdown(
                       onSortChanged: (sortOption) {
-                        ref.read(promoCodesNotifierProvider.notifier).setSortOption(sortOption);
+                        ref
+                            .read(promoCodesNotifierProvider.notifier)
+                            .setSortOption(sortOption);
                       },
                     ),
                   ],
@@ -142,7 +147,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                           Icon(
                             Icons.receipt_long,
                             size: 64,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.3),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -156,30 +163,28 @@ class _HomePageState extends ConsumerState<HomePage> {
                 }
 
                 return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final promoCode = promoCodes[index];
-                      return PromoCodeCard(
-                        promoCode: promoCode,
-                        currentUserId: currentUser?.id,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DetailsPage(promoCodeId: promoCode.id),
-                            ),
-                          );
-                        },
-                        onUpvote: () {
-                          _handleVote(promoCode.id, true);
-                        },
-                        onDownvote: () {
-                          _handleVote(promoCode.id, false);
-                        },
-                      );
-                    },
-                    childCount: promoCodes.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final promoCode = promoCodes[index];
+                    return PromoCodeCard(
+                      promoCode: promoCode,
+                      currentUserId: currentUser?.id,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                DetailsPage(promoCodeId: promoCode.id),
+                          ),
+                        );
+                      },
+                      onUpvote: () {
+                        _handleVote(promoCode.id, true);
+                      },
+                      onDownvote: () {
+                        _handleVote(promoCode.id, false);
+                      },
+                    );
+                  }, childCount: promoCodes.length),
                 );
               },
               loading: () => const SliverFillRemaining(
@@ -203,7 +208,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                       const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed: () {
-                          ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
+                          ref
+                              .read(promoCodesNotifierProvider.notifier)
+                              .loadPromoCodes(refresh: true);
                         },
                         child: const Text('Retry'),
                       ),

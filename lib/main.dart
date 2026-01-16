@@ -7,6 +7,7 @@ import 'core/providers/theme_provider.dart';
 import 'core/providers/locale_provider.dart';
 import 'features/promo_codes/presentation/pages/home_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/auth/presentation/pages/login_page.dart';
 import 'features/user/presentation/pages/profile_page.dart';
 import 'features/user/presentation/pages/settings_page.dart';
 
@@ -31,10 +32,7 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.getDarkTheme(),
       themeMode: themeMode,
       locale: locale,
-      supportedLocales: const [
-        Locale('en'),
-        Locale('ru'),
-      ],
+      supportedLocales: const [Locale('en'), Locale('ru')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -55,16 +53,12 @@ class MainScreen extends ConsumerWidget {
     return authState.when(
       data: (user) {
         if (user == null) {
-          // Auto sign in anonymously if no user
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            DependencyInjection.authRepository.signInAnonymously();
-          });
+          return const LoginPage();
         }
         return const HomeScreen();
       },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, stack) => Scaffold(
         body: Center(
           child: Column(

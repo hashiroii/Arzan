@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../firebase_options.dart';
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -20,10 +21,12 @@ class DependencyInjection {
 
     final firebaseAuth = firebase_auth.FirebaseAuth.instance;
     final firestore = FirebaseFirestore.instance;
+    final googleSignIn = GoogleSignIn();
 
     final authRemoteDataSource = AuthRemoteDataSourceImpl(
       firebaseAuth,
       firestore,
+      googleSignIn,
     );
     final promoCodeRemoteDataSource = PromoCodeRemoteDataSourceImpl(firestore);
     final userRemoteDataSource = UserRemoteDataSourceImpl(firestore);

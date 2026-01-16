@@ -4,6 +4,7 @@ import '../../../user/domain/entities/user.dart';
 
 abstract class AuthRepository {
   Future<Either<Failure, User>> signInAnonymously();
+  Future<Either<Failure, User>> signInWithGoogle();
   Future<Either<Failure, User>> signInWithEmailAndPassword(String email, String password);
   Future<Either<Failure, User>> signUpWithEmailAndPassword(String email, String password, String displayName);
   Future<Either<Failure, void>> signOut();

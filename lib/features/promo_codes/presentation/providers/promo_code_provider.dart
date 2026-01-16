@@ -6,7 +6,6 @@ import '../../domain/usecases/create_promo_code.dart';
 import '../../domain/usecases/vote_promo_code.dart';
 import '../../domain/usecases/get_promo_code_by_id.dart';
 import '../../../../core/utils/dependency_injection.dart';
-import '../../../../core/errors/failures.dart';
 
 final promoCodeRepositoryProvider = Provider<PromoCodeRepository>((ref) {
   return DependencyInjection.promoCodeRepository;
@@ -71,7 +70,9 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
         } else {
           lastDocumentId = promoCodes.last.id;
           final currentList = state.value ?? [];
-          state = AsyncValue.data(refresh ? promoCodes : [...currentList, ...promoCodes]);
+          state = AsyncValue.data(
+            refresh ? promoCodes : [...currentList, ...promoCodes],
+          );
         }
       },
     );
@@ -88,6 +89,9 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
   }
 }
 
-final promoCodesNotifierProvider = StateNotifierProvider<PromoCodesNotifier, AsyncValue<List<PromoCode>>>((ref) {
-  return PromoCodesNotifier(ref.read(getPromoCodesProvider));
-});
+final promoCodesNotifierProvider =
+    StateNotifierProvider<PromoCodesNotifier, AsyncValue<List<PromoCode>>>((
+      ref,
+    ) {
+      return PromoCodesNotifier(ref.read(getPromoCodesProvider));
+    });
