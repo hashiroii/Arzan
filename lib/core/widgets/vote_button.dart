@@ -23,10 +23,11 @@ class VoteButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final karma = upvotes - downvotes;
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
+        // Upvote button
         InkWell(
           onTap: onUpvote,
           borderRadius: BorderRadius.circular(8),
@@ -39,6 +40,7 @@ class VoteButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   Icons.arrow_upward,
@@ -62,23 +64,7 @@ class VoteButton extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            karma.toString(),
-            style: AppTextStyles.caption.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-
+        // Downvote button
         InkWell(
           onTap: onDownvote,
           borderRadius: BorderRadius.circular(8),
@@ -91,6 +77,7 @@ class VoteButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   Icons.arrow_downward,

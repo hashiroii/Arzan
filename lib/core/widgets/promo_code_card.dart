@@ -29,6 +29,7 @@ class PromoCodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isExpired = promoCode.isExpired;
+    final karma = promoCode.karma;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -40,9 +41,27 @@ class PromoCodeCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header: Service name and author
+              // Header: Service name, author photo, and credibility (karma) on top right
               Row(
                 children: [
+                  // Author photo on left
+                  if (promoCode.author?.photoUrl != null)
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage(
+                        promoCode.author!.photoUrl!,
+                      ),
+                    )
+                  else if (promoCode.author != null)
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: theme.colorScheme.primary,
+                      child: Text(
+                        promoCode.author!.displayName?[0].toUpperCase() ?? 'U',
+                        style: const TextStyle(color: AppColors.black, fontSize: 16),
+                      ),
+                    ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       promoCode.serviceName,
@@ -52,22 +71,36 @@ class PromoCodeCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (promoCode.author?.photoUrl != null)
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundImage: NetworkImage(
-                        promoCode.author!.photoUrl!,
-                      ),
-                    )
-                  else if (promoCode.author != null)
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: theme.colorScheme.primary,
-                      child: Text(
-                        promoCode.author!.displayName?[0].toUpperCase() ?? 'U',
-                        style: const TextStyle(color: AppColors.black),
+                  // Credibility (Karma) badge on top right
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withOpacity(0.3),
+                        width: 1,
                       ),
                     ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.star,
+                          size: 14,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          karma.toString(),
+                          style: AppTextStyles.caption.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -91,7 +124,8 @@ class PromoCodeCard extends StatelessWidget {
                   child: Text(
                     promoCode.code,
                     style: AppTextStyles.promoCode.copyWith(
-                      color: theme.colorScheme.primary,
+                      color: AppColors.black, // Black text for better visibility on yellow
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -112,7 +146,7 @@ class PromoCodeCard extends StatelessWidget {
                   ),
                 ),
 
-              // Footer: Expiration date, votes, and action buttons
+              // Footer: Expiration date and vote buttons (next to each other)
               Row(
                 children: [
                   if (promoCode.expirationDate != null)
@@ -135,9 +169,7 @@ class PromoCodeCard extends StatelessWidget {
                               style: AppTextStyles.caption.copyWith(
                                 color: isExpired
                                     ? AppColors.error
-                                    : theme.colorScheme.onSurface.withOpacity(
-                                        0.6,
-                                      ),
+                                    : theme.colorScheme.onSurface.withOpacity(0.6),
                               ),
                             ),
                           ),
@@ -154,13 +186,86 @@ class PromoCodeCard extends StatelessWidget {
                       ),
                     ),
 
-                  VoteButton(
-                    isUpvoted: isUpvoted,
-                    isDownvoted: isDownvoted,
-                    upvotes: promoCode.upvotes,
-                    downvotes: promoCode.downvotes,
-                    onUpvote: onUpvote != null ? () => onUpvote!() : null,
-                    onDownvote: onDownvote != null ? () => onDownvote!() : null,
+                  // Vote buttons next to each other (without karma in between)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Upvote button
+                      InkWell(
+                        onTap: onUpvote,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isUpvoted
+                                ? AppColors.upvote.withOpacity(0.2)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.arrow_upward,
+                                size: 20,
+                                color: isUpvoted
+                                    ? AppColors.upvote
+                                    : theme.colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                promoCode.upvotes.toString(),
+                                style: AppTextStyles.caption.copyWith(
+                                  color: isUpvoted
+                                      ? AppColors.upvote
+                                      : theme.colorScheme.onSurface.withOpacity(0.6),
+                                  fontWeight: isUpvoted ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Downvote button
+                      InkWell(
+                        onTap: onDownvote,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isDownvoted
+                                ? AppColors.downvote.withOpacity(0.2)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.arrow_downward,
+                                size: 20,
+                                color: isDownvoted
+                                    ? AppColors.downvote
+                                    : theme.colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                promoCode.downvotes.toString(),
+                                style: AppTextStyles.caption.copyWith(
+                                  color: isDownvoted
+                                      ? AppColors.downvote
+                                      : theme.colorScheme.onSurface.withOpacity(0.6),
+                                  fontWeight: isDownvoted
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

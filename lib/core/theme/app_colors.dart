@@ -33,7 +33,7 @@ class AppColors {
   static const Color warning = accentOrange;
   static const Color info = accentBlue;
 
-  // Vote Colors
-  static const Color upvote = Color(0xFFFF6B6B);
-  static const Color downvote = Color(0xFF4ECDC4);
+  // Vote Colors (Reddit-like: green for upvote, red for downvote)
+  static const Color upvote = Color(0xFF4ECDC4); // Green/Teal for upvote
+  static const Color downvote = Color(0xFFFF6B6B); // Red for downvote
 }

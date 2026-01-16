@@ -6,9 +6,9 @@ import '../../../../core/widgets/vote_button.dart';
 import '../../domain/entities/promo_code.dart';
 import '../../domain/usecases/get_promo_code_by_id.dart';
 import '../../domain/usecases/vote_promo_code.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../user/presentation/providers/user_provider.dart';
 import '../providers/promo_code_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/utils/dependency_injection.dart';
 
 class DetailsPage extends ConsumerStatefulWidget {
   final String promoCodeId;
@@ -97,6 +97,53 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
     }
   }
 
+  Future<void> _deletePromoCode(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Promo Code'),
+        content: const Text(
+          'Are you sure you want to delete this promo code? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && _promoCode != null) {
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser != null) {
+        final repo = DependencyInjection.promoCodeRepository;
+        final result = await repo.deletePromoCode(_promoCode!.id, currentUser.id);
+        result.fold(
+          (failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: ${failure.message ?? "Failed to delete"}'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          },
+          (_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Promo code deleted')),
+            );
+            Navigator.of(context).pop();
+          },
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -114,6 +161,8 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
     final isUpvoted = currentUser != null && promoCode.upvotedBy.contains(currentUser.id);
     final isDownvoted = currentUser != null && promoCode.downvotedBy.contains(currentUser.id);
 
+    final isOwner = currentUser != null && promoCode.authorId == currentUser.id;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Promo Code Details'),
@@ -122,6 +171,11 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
             icon: const Icon(Icons.share),
             onPressed: _sharePromoCode,
           ),
+          if (isOwner)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () => _deletePromoCode(context),
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -155,7 +209,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                 child: Text(
                   promoCode.code,
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: theme.colorScheme.primary,
+                        color: AppColors.black, // Black text for better visibility on yellow
                         fontWeight: FontWeight.bold,
                         letterSpacing: 2,
                         fontFamily: 'monospace',
@@ -165,40 +219,58 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
             ),
             const SizedBox(height: 24),
 
-            // Author info
+            // Author info with photo and name
             if (promoCode.author != null)
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundImage: promoCode.author!.photoUrl != null
-                        ? NetworkImage(promoCode.author!.photoUrl!)
-                        : null,
-                    backgroundColor: theme.colorScheme.primary,
-                    child: promoCode.author!.photoUrl == null
-                        ? Text(
-                            promoCode.author!.displayName?[0].toUpperCase() ?? 'U',
-                            style: const TextStyle(color: AppColors.black),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          promoCode.author!.displayName ?? 'Anonymous',
-                          style: Theme.of(context).textTheme.titleMedium,
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundImage: promoCode.author!.photoUrl != null
+                            ? NetworkImage(promoCode.author!.photoUrl!)
+                            : null,
+                        backgroundColor: theme.colorScheme.primary,
+                        child: promoCode.author!.photoUrl == null
+                            ? Text(
+                                promoCode.author!.displayName?[0].toUpperCase() ?? 'U',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      color: AppColors.black,
+                                    ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              promoCode.author!.displayName ?? 'Anonymous',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Credibility: ${promoCode.author!.karma}',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        Text(
-                          'Karma: ${promoCode.author!.karma}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             const SizedBox(height: 24),
 
@@ -260,7 +332,8 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
             const SizedBox(height: 24),
 
             // Vote section
-            Center(
+            Align(
+              alignment: Alignment.center,
               child: VoteButton(
                 isUpvoted: isUpvoted,
                 isDownvoted: isDownvoted,
