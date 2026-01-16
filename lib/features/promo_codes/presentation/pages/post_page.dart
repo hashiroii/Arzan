@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/promo_code.dart';
-import '../../domain/usecases/create_promo_code.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/promo_code_provider.dart';
 
@@ -60,9 +58,9 @@ class _PostPageState extends ConsumerState<PostPage> {
 
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in to post')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please sign in to post')));
       return;
     }
 
@@ -88,7 +86,11 @@ class _PostPageState extends ConsumerState<PostPage> {
     result.fold(
       (failure) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${failure.message ?? 'Failed to create promo code'}')),
+          SnackBar(
+            content: Text(
+              'Error: ${failure.message ?? 'Failed to create promo code'}',
+            ),
+          ),
         );
         setState(() {
           _isSubmitting = false;
@@ -98,7 +100,9 @@ class _PostPageState extends ConsumerState<PostPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Promo code posted successfully!')),
         );
-        ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
+        ref
+            .read(promoCodesNotifierProvider.notifier)
+            .loadPromoCodes(refresh: true);
         Navigator.of(context).pop();
       },
     );
@@ -107,9 +111,7 @@ class _PostPageState extends ConsumerState<PostPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post Promo Code'),
-      ),
+      appBar: AppBar(title: const Text('Post Promo Code')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(

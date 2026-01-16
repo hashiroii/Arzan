@@ -12,7 +12,7 @@ class BannerWidget extends StatefulWidget {
 class _BannerWidgetState extends State<BannerWidget> {
   int _currentIndex = 0;
 
-  // Placeholder banners - replace with actual ads or banners
+  // Placeholder banners - will be replaced with actual ads or banners
   final List<Widget> _banners = [
     _BannerItem(
       title: 'Welcome to Arzan',
@@ -75,16 +75,16 @@ class _BannerItem extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppColors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppColors.black,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.black.withOpacity(0.8),
-                  ),
+                color: AppColors.black.withOpacity(0.8),
+              ),
             ),
           ],
         ),

@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../domain/repositories/promo_code_repository.dart';
-import '../../../../core/constants/app_constants.dart';
 
 class SortDropdown extends StatelessWidget {
   final Function(SortOption) onSortChanged;
 
-  const SortDropdown({
-    super.key,
-    required this.onSortChanged,
-  });
+  const SortDropdown({super.key, required this.onSortChanged});
 
   @override
   Widget build(BuildContext context) {
