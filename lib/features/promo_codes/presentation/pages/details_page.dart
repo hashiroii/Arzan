@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/vote_button.dart';
+import '../../../../core/utils/translations.dart';
 import '../../domain/entities/promo_code.dart';
 import '../../domain/usecases/get_promo_code_by_id.dart';
 import '../../domain/usecases/vote_promo_code.dart';
@@ -52,41 +54,114 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in to vote')),
+        SnackBar(content: Text(Translations.pleaseSignInToVote)),
       );
       return;
     }
 
     if (_promoCode == null) return;
 
+    // Optimistically update UI immediately
+    final wasUpvoted = _promoCode!.upvotedBy.contains(currentUser.id);
+    final wasDownvoted = _promoCode!.downvotedBy.contains(currentUser.id);
+
+    List<String> newUpvotedBy = List.from(_promoCode!.upvotedBy);
+    List<String> newDownvotedBy = List.from(_promoCode!.downvotedBy);
+    int newUpvotes = _promoCode!.upvotes;
+    int newDownvotes = _promoCode!.downvotes;
+
+    // Ensure mutual exclusivity - remove from both lists first
+    if (newUpvotedBy.contains(currentUser.id)) {
+      newUpvotedBy.remove(currentUser.id);
+      newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
+    }
+    if (newDownvotedBy.contains(currentUser.id)) {
+      newDownvotedBy.remove(currentUser.id);
+      newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
+    }
+
+    // Now add to the appropriate list
+    if (isUpvote) {
+      if (!wasUpvoted) {
+        // Add upvote (only if wasn't already upvoted)
+        newUpvotedBy.add(currentUser.id);
+        newUpvotes = newUpvotes + 1;
+      }
+      // If was upvoted, we already removed it above, so do nothing
+    } else {
+      if (!wasDownvoted) {
+        // Add downvote (only if wasn't already downvoted)
+        newDownvotedBy.add(currentUser.id);
+        newDownvotes = newDownvotes + 1;
+      }
+      // If was downvoted, we already removed it above, so do nothing
+    }
+
+    setState(() {
+      _promoCode = _promoCode!.copyWith(
+        upvotes: newUpvotes,
+        downvotes: newDownvotes,
+        upvotedBy: newUpvotedBy,
+        downvotedBy: newDownvotedBy,
+      );
+    });
+
+    // Then sync with backend in background
     final upvoteUseCase = ref.read(upvotePromoCodeProvider);
     final downvoteUseCase = ref.read(downvotePromoCodeProvider);
     final removeVoteUseCase = ref.read(removeVoteProvider);
 
-    final isCurrentlyUpvoted = _promoCode!.upvotedBy.contains(currentUser.id);
-    final isCurrentlyDownvoted = _promoCode!.downvotedBy.contains(currentUser.id);
-
-    if (isUpvote) {
-      if (isCurrentlyUpvoted) {
-        await removeVoteUseCase(widget.promoCodeId, currentUser.id);
-      } else {
-        if (isCurrentlyDownvoted) {
+    try {
+      if (isUpvote) {
+        if (wasUpvoted) {
           await removeVoteUseCase(widget.promoCodeId, currentUser.id);
+        } else {
+          if (wasDownvoted) {
+            await removeVoteUseCase(widget.promoCodeId, currentUser.id);
+          }
+          await upvoteUseCase(widget.promoCodeId, currentUser.id);
         }
-        await upvoteUseCase(widget.promoCodeId, currentUser.id);
+      } else {
+        if (wasDownvoted) {
+          await removeVoteUseCase(widget.promoCodeId, currentUser.id);
+        } else {
+          if (wasUpvoted) {
+            await removeVoteUseCase(widget.promoCodeId, currentUser.id);
+          }
+          await downvoteUseCase(widget.promoCodeId, currentUser.id);
+        }
       }
-    } else {
-      if (isCurrentlyDownvoted) {
-        await removeVoteUseCase(widget.promoCodeId, currentUser.id);
-      } else {
-        if (isCurrentlyUpvoted) {
-          await removeVoteUseCase(widget.promoCodeId, currentUser.id);
+      
+      // Update home page provider to sync vote state
+      ref.read(promoCodesNotifierProvider.notifier).updatePromoCodeVote(
+        widget.promoCodeId,
+        currentUser.id,
+        isUpvote,
+      );
+      
+      // Silently refresh to sync with server (without blocking UI)
+      // Delay to avoid blocking navigation
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          _loadPromoCode().catchError((e) {
+            print('Background refresh error: $e');
+          });
         }
-        await downvoteUseCase(widget.promoCodeId, currentUser.id);
+      });
+    } catch (e) {
+      // If error, show message but don't block
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to vote: $e')),
+        );
+        // Revert optimistic update by reloading
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            _loadPromoCode();
+          }
+        });
       }
     }
-
-    _loadPromoCode();
   }
 
   void _sharePromoCode() {
@@ -193,29 +268,53 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
             ),
             const SizedBox(height: 24),
 
-            // Promo Code - Biggest
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.colorScheme.primary,
-                  width: 3,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  promoCode.code,
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: AppColors.black, // Black text for better visibility on yellow
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                        fontFamily: 'monospace',
+            // Promo Code - Biggest with Copy Button
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.colorScheme.primary,
+                        width: 3,
                       ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        promoCode.code,
+                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                              color: AppColors.black, // Black text for better visibility on yellow
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                              fontFamily: 'monospace',
+                            ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                IconButton(
+                  icon: const Icon(Icons.copy, size: 28),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: promoCode.code));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(Translations.copied(promoCode.code)),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  tooltip: 'Copy promo code',
+                  color: theme.colorScheme.primary,
+                  style: IconButton.styleFrom(
+                    padding: const EdgeInsets.all(12),
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 
@@ -331,9 +430,9 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
             ),
             const SizedBox(height: 24),
 
-            // Vote section
+            // Vote section - aligned to the right
             Align(
-              alignment: Alignment.center,
+              alignment: Alignment.centerRight,
               child: VoteButton(
                 isUpvoted: isUpvoted,
                 isDownvoted: isDownvoted,
