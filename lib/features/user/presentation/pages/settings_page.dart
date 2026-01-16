@@ -4,10 +4,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../../core/utils/dependency_injection.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -36,19 +36,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _requestNotificationPermission() async {
     final status = await Permission.notification.request();
     if (status.isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Notification permission granted')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification permission granted')),
+        );
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Notification permission denied')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification permission denied')),
+        );
+      }
     }
   }
 
   Future<void> _openFeedback() async {
     final url = Uri.parse(
-      'https://play.google.com/store/apps/details?id=com.arzan.app', // Replace with actual ID, I'll do it later
+      'https://play.google.com/store/apps/details?id=com.arzan.app',
     );
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -77,14 +81,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       final currentUser = ref.read(currentUserProvider);
       if (currentUser != null) {
-        // Delete user data
         final userRepo = DependencyInjection.userRepository;
         await userRepo.deleteUser(currentUser.id);
 
-        // Sign out
         final authRepo = DependencyInjection.authRepository;
         await authRepo.signOut();
 
@@ -102,113 +104,128 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final locale = ref.watch(localeProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: const Text('Settings'),
+        elevation: 0,
+      ),
       body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
           // Language Section
-          _SectionHeader(title: 'Language'),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Language'),
-            subtitle: Text(locale.languageCode == 'en' ? 'English' : 'Русский'),
-            trailing: DropdownButton<Locale>(
-              value: locale,
-              items: const [
-                DropdownMenuItem(value: Locale('en'), child: Text('English')),
-                DropdownMenuItem(value: Locale('ru'), child: Text('Русский')),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(localeProvider.notifier).setLocale(value);
-                }
-              },
-            ),
+          _SettingsSection(
+            title: 'Language',
+            icon: Icons.language,
+            children: [
+              _LanguageTile(
+                locale: locale,
+                onLocaleChanged: (newLocale) {
+                  ref.read(localeProvider.notifier).setLocale(newLocale);
+                },
+              ),
+            ],
           ),
-          const Divider(),
+          const SizedBox(height: 24),
 
           // Theme Section
-          _SectionHeader(title: 'Theme'),
-          RadioListTile<ThemeMode>(
-            title: const Text('System Default'),
-            value: ThemeMode.system,
-            groupValue: themeMode,
-            onChanged: (value) {
-              if (value != null) {
-                ref.read(themeModeProvider.notifier).setThemeMode(value);
-              }
-            },
+          _SettingsSection(
+            title: 'Appearance',
+            icon: Icons.palette,
+            children: [
+              _ThemeTile(
+                themeMode: themeMode,
+                onThemeModeChanged: (mode) {
+                  ref.read(themeModeProvider.notifier).setThemeMode(mode);
+                },
+              ),
+            ],
           ),
-          RadioListTile<ThemeMode>(
-            title: const Text('Light'),
-            value: ThemeMode.light,
-            groupValue: themeMode,
-            onChanged: (value) {
-              if (value != null) {
-                ref.read(themeModeProvider.notifier).setThemeMode(value);
-              }
-            },
-          ),
-          RadioListTile<ThemeMode>(
-            title: const Text('Dark'),
-            value: ThemeMode.dark,
-            groupValue: themeMode,
-            onChanged: (value) {
-              if (value != null) {
-                ref.read(themeModeProvider.notifier).setThemeMode(value);
-              }
-            },
-          ),
-          const Divider(),
+          const SizedBox(height: 24),
 
           // Notifications Section
-          _SectionHeader(title: 'Notifications'),
-          ListTile(
-            leading: const Icon(Icons.notifications),
-            title: const Text('Notifications'),
-            subtitle: const Text('Enable push notifications'),
-            trailing: Switch(
-              value: false, // TODO: Implement notification state
-              onChanged: (value) {
-                _requestNotificationPermission();
-              },
-            ),
+          _SettingsSection(
+            title: 'Notifications',
+            icon: Icons.notifications,
+            children: [
+              SwitchListTile(
+                title: const Text('Push Notifications'),
+                subtitle: const Text('Receive notifications about new promo codes'),
+                value: false, // TODO: Implement notification state
+                onChanged: (value) => _requestNotificationPermission(),
+                secondary: const Icon(Icons.notifications_outlined),
+              ),
+            ],
           ),
-          const Divider(),
+          const SizedBox(height: 24),
 
           // Feedback Section
-          _SectionHeader(title: 'Feedback'),
-          ListTile(
-            leading: const Icon(Icons.feedback),
-            title: const Text('Rate App'),
-            subtitle: const Text('Leave a review on Play Store / App Store'),
-            onTap: _openFeedback,
+          _SettingsSection(
+            title: 'Feedback',
+            icon: Icons.feedback,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.star),
+                title: const Text('Rate App'),
+                subtitle: const Text('Leave a review on Play Store / App Store'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _openFeedback,
+              ),
+            ],
           ),
-          const Divider(),
+          const SizedBox(height: 24),
 
           // About Section
-          _SectionHeader(title: 'About'),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('Version'),
-            subtitle: Text(_appVersion.isEmpty ? 'Loading...' : _appVersion),
+          _SettingsSection(
+            title: 'About',
+            icon: Icons.info,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('Version'),
+                subtitle: Text(_appVersion.isEmpty ? 'Loading...' : _appVersion),
+              ),
+              ListTile(
+                leading: const Icon(Icons.apps),
+                title: const Text('App Name'),
+                subtitle: const Text('Arzan'),
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.apps),
-            title: const Text('App Icon'),
-            subtitle: const Text('Arzan'),
-          ),
-          const Divider(),
+          const SizedBox(height: 24),
 
           // Account Section
-          _SectionHeader(title: 'Account'),
-          ListTile(
-            leading: const Icon(Icons.delete_forever, color: Colors.red),
-            title: const Text(
-              'Delete Account',
-              style: TextStyle(color: Colors.red),
-            ),
-            subtitle: const Text('Permanently delete your account'),
-            onTap: _deleteAccount,
+          _SettingsSection(
+            title: 'Account',
+            icon: Icons.account_circle,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Sign Out'),
+                subtitle: const Text('Sign out from your account'),
+                onTap: () async {
+                  final authRepo = DependencyInjection.authRepository;
+                  final result = await authRepo.signOut();
+                  result.fold(
+                    (failure) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: ${failure.message ?? "Failed to sign out"}'),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    },
+                    (_) {
+                      // Success - auth state will update automatically
+                    },
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_forever),
+                title: const Text('Delete Account'),
+                subtitle: const Text('Permanently delete your account and data'),
+                onTap: _deleteAccount,
+              ),
+            ],
           ),
         ],
       ),
@@ -216,21 +233,138 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
+class _SettingsSection extends StatelessWidget {
   final String title;
+  final IconData icon;
+  final List<Widget> children;
 
-  const _SectionHeader({required this.title});
+  const _SettingsSection({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+        ),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.brightness == Brightness.dark 
+                        ? theme.colorScheme.primary 
+                        : theme.colorScheme.onSurface, // Use onSurface for light theme
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageTile extends StatelessWidget {
+  final Locale locale;
+  final Function(Locale) onLocaleChanged;
+
+  const _LanguageTile({
+    required this.locale,
+    required this.onLocaleChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.language),
+      title: const Text('Language'),
+      subtitle: Text(locale.languageCode == 'en' ? 'English' : 'Русский'),
+      trailing: DropdownButton<Locale>(
+        value: locale,
+        underline: const SizedBox(),
+        items: const [
+          DropdownMenuItem(
+            value: Locale('en'),
+            child: Text('English'),
+          ),
+          DropdownMenuItem(
+            value: Locale('ru'),
+            child: Text('Русский'),
+          ),
+        ],
+        onChanged: (value) {
+          if (value != null) {
+            onLocaleChanged(value);
+          }
+        },
+      ),
+    );
+  }
+}
+
+class _ThemeTile extends StatelessWidget {
+  final ThemeMode themeMode;
+  final Function(ThemeMode) onThemeModeChanged;
+
+  const _ThemeTile({
+    required this.themeMode,
+    required this.onThemeModeChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        RadioListTile<ThemeMode>(
+          title: const Text('System Default'),
+          value: ThemeMode.system,
+          groupValue: themeMode,
+          onChanged: (value) {
+            if (value != null) {
+              onThemeModeChanged(value);
+            }
+          },
+        ),
+        RadioListTile<ThemeMode>(
+          title: const Text('Light'),
+          value: ThemeMode.light,
+          groupValue: themeMode,
+          onChanged: (value) {
+            if (value != null) {
+              onThemeModeChanged(value);
+            }
+          },
+        ),
+        RadioListTile<ThemeMode>(
+          title: const Text('Dark'),
+          value: ThemeMode.dark,
+          groupValue: themeMode,
+          onChanged: (value) {
+            if (value != null) {
+              onThemeModeChanged(value);
+            }
+          },
+        ),
+      ],
     );
   }
 }
