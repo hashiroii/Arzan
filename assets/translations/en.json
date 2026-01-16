@@ -42,5 +42,13 @@
   "delete": "Delete",
   "no_expiration": "No expiration",
   "promo_codes": "Promo Codes",
-  "no_promo_codes_yet": "No promo codes yet"
+  "no_promo_codes_yet": "No promo codes yet",
+  "please_sign_in_to_vote": "Please sign in to vote",
+  "please_sign_in_to_post": "Please sign in to post",
+  "please_select_service": "Please select a service",
+  "promo_code_posted_success": "Promo code posted successfully!",
+  "failed_to_vote": "Failed to vote",
+  "copied": "Copied",
+  "selected": "Selected",
+  "please_sign_in": "Please sign in"
 }

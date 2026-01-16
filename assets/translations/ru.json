@@ -42,5 +42,13 @@
   "delete": "Удалить",
   "no_expiration": "Без срока действия",
   "promo_codes": "Промокоды",
-  "no_promo_codes_yet": "Пока нет промокодов"
+  "no_promo_codes_yet": "Пока нет промокодов",
+  "please_sign_in_to_vote": "Пожалуйста, войдите в систему, чтобы голосовать",
+  "please_sign_in_to_post": "Пожалуйста, войдите в систему, чтобы опубликовать",
+  "please_select_service": "Пожалуйста, выберите сервис",
+  "promo_code_posted_success": "Промокод успешно опубликован!",
+  "failed_to_vote": "Не удалось проголосовать",
+  "copied": "Скопировано",
+  "selected": "Выбрано",
+  "please_sign_in": "Пожалуйста, войдите в систему"
 }

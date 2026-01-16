@@ -5,6 +5,7 @@ import 'core/utils/dependency_injection.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/providers/locale_provider.dart';
+import 'core/utils/translations.dart';
 import 'features/promo_codes/presentation/pages/home_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/auth/presentation/pages/login_page.dart';
@@ -14,6 +15,8 @@ import 'features/user/presentation/pages/settings_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DependencyInjection.init();
+  // Load initial translations
+  await Translations.load(const Locale('en'));
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -24,6 +27,12 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
+    final translationsAsync = ref.watch(translationsProvider);
+
+    // Reload translations when locale changes
+    translationsAsync.whenData((_) async {
+      await Translations.load(locale);
+    });
 
     return MaterialApp(
       title: 'Arzan',
