@@ -7,6 +7,8 @@ import '../providers/user_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../promo_codes/presentation/pages/details_page.dart';
+import '../../../promo_codes/domain/entities/promo_code.dart';
+import '../../../promo_codes/data/repositories/promo_code_repository_impl.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   final String? userId; // If null, shows current user's profile
@@ -19,68 +21,140 @@ class ProfilePage extends ConsumerStatefulWidget {
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   User? _user;
-  List<dynamic> _userPromoCodes = [];
+  List<PromoCode> _userPromoCodes = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserData();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload data when dependencies change (e.g., when user signs in)
+    final currentUser = ref.read(currentUserProvider);
+    if (currentUser != null && _user?.id != currentUser.id) {
+      _loadUserData();
+    }
+  }
+
+  // Refresh user data when returning to this page
+  Future<void> _refreshData() async {
+    await _loadUserData();
+  }
+
+  @override
+  void didUpdateWidget(ProfilePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload if user ID changed
+    if (oldWidget.userId != widget.userId) {
+      _loadUserData();
+    }
   }
 
   Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final targetUserId = widget.userId ?? ref.read(currentUserProvider)?.id;
     if (targetUserId == null) {
+      print('🔴 Profile: No user ID available');
       setState(() {
         _isLoading = false;
+        _user = null;
+        _userPromoCodes = [];
       });
       return;
     }
 
-    // Load user
-    final getUserUseCase = ref.read(getUserByIdProvider);
-    final userResult = await getUserUseCase(targetUserId);
-    userResult.fold(
-      (failure) {
-        print('🔴 Profile: Error loading user: ${failure.message}');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${failure.message ?? "Failed to load user"}')),
-          );
-        }
-        setState(() {
-          _user = null;
-        });
-      },
-      (user) {
-        print('✅ Profile: User loaded - Karma: ${user.karma}');
-        setState(() {
-          _user = user;
-        });
-      },
-    );
+    print('🔵 Profile: Loading data for user ID: $targetUserId');
 
-    // Load user's promo codes
-    final repo = DependencyInjection.promoCodeRepository;
-    final codesResult = await repo.getUserPromoCodes(targetUserId);
-    codesResult.fold(
-      (failure) {
-        print('🔴 Profile: Error loading promo codes: ${failure.message}');
-        setState(() {
-          _userPromoCodes = [];
-        });
-      },
-      (codes) {
-        print('✅ Profile: Loaded ${codes.length} promo codes');
-        setState(() {
-          _userPromoCodes = codes;
-        });
-      },
-    );
+    try {
+      // Load user and promo codes in parallel
+      final getUserUseCase = ref.read(getUserByIdProvider);
+      final repo = DependencyInjection.promoCodeRepository;
 
-    setState(() {
-      _isLoading = false;
-    });
+      final codesResult = await repo.getUserPromoCodes(targetUserId);
+
+      // Recalculate karma from all promo codes before loading user
+      // This ensures karma is accurate
+      final promoCodeRepo = DependencyInjection.promoCodeRepository;
+      if (promoCodeRepo is PromoCodeRepositoryImpl) {
+        await promoCodeRepo.recalculateUserKarma(targetUserId);
+      }
+
+      // Load user after recalculating karma
+      final userResult = await getUserUseCase(targetUserId);
+
+      // Handle user result
+      userResult.fold(
+        (failure) {
+          print('🔴 Profile: Error loading user: ${failure.message}');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: ${failure.message ?? "Failed to load user"}')),
+            );
+          }
+          setState(() {
+            _user = null;
+          });
+        },
+        (user) {
+          print('✅ Profile: User loaded successfully');
+          print('   - ID: ${user.id}');
+          print('   - Email: ${user.email}');
+          print('   - Display Name: ${user.displayName ?? "null"}');
+          print('   - Karma: ${user.karma}');
+          print('   - Photo URL: ${user.photoUrl ?? "null"}');
+          if (mounted) {
+            setState(() {
+              _user = user;
+            });
+          }
+        },
+      );
+
+      // Handle promo codes result
+      codesResult.fold(
+        (failure) {
+          print('🔴 Profile: Error loading promo codes: ${failure.message}');
+          if (mounted) {
+            setState(() {
+              _userPromoCodes = [];
+            });
+          }
+        },
+        (codes) {
+          print('✅ Profile: Loaded ${codes.length} promo codes');
+          for (var code in codes) {
+            print('   - Code: ${code.code}, Service: ${code.serviceName}, Author ID: ${code.authorId}');
+          }
+          if (mounted) {
+            setState(() {
+              _userPromoCodes = codes;
+            });
+          }
+        },
+      );
+    } catch (e) {
+      print('🔴 Profile: Unexpected error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unexpected error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -108,6 +182,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       appBar: AppBar(
         title: const Text('Profile'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshData,
+            tooltip: 'Refresh',
+          ),
           if (isCurrentUser)
             IconButton(
               icon: const Icon(Icons.logout),
@@ -243,14 +322,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       (code) => PromoCodeCard(
                         promoCode: code,
                         currentUserId: currentUser?.id,
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
                                   DetailsPage(promoCodeId: code.id),
                             ),
                           );
+                          // Refresh profile data when returning from details
+                          if (mounted) {
+                            _refreshData();
+                          }
                         },
                         onUpvote: null, // Disable voting on own codes in profile
                         onDownvote: null,

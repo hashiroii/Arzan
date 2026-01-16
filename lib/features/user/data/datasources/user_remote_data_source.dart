@@ -8,6 +8,7 @@ abstract class UserRemoteDataSource {
   Future<UserModel> updateUser(UserModel user);
   Future<void> deleteUser(String userId);
   Future<void> updateUserKarma(String userId, int karmaChange);
+  Future<void> recalculateUserKarma(String userId, int totalKarma);
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -58,6 +59,17 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     try {
       await firestore.collection('users').doc(userId).update({
         'karma': FieldValue.increment(karmaChange),
+      });
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
+  }
+
+  @override
+  Future<void> recalculateUserKarma(String userId, int totalKarma) async {
+    try {
+      await firestore.collection('users').doc(userId).update({
+        'karma': totalKarma,
       });
     } catch (e) {
       throw ServerFailure(e.toString());

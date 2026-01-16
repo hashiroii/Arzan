@@ -80,4 +80,17 @@ class UserRepositoryImpl implements UserRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> recalculateUserKarma(String userId) async {
+    try {
+      // This will be called from promo code repository after calculating total karma
+      // The actual calculation happens in promo code repository
+      return const Right(null);
+    } on ServerFailure catch (e) {
+      return Left(e);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

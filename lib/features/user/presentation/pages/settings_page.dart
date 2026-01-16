@@ -7,6 +7,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
+import '../../../../core/utils/translations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
 
@@ -19,11 +20,20 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   String _appVersion = '';
+  bool _notificationEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _loadAppVersion();
+    _checkNotificationPermission();
+  }
+
+  Future<void> _checkNotificationPermission() async {
+    final status = await Permission.notification.status;
+    setState(() {
+      _notificationEnabled = status.isGranted;
+    });
   }
 
   Future<void> _loadAppVersion() async {
@@ -34,14 +44,66 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _requestNotificationPermission() async {
+    // Check current status first
+    final currentStatus = await Permission.notification.status;
+    
+    if (currentStatus.isGranted) {
+      // Toggle off
+      setState(() {
+        _notificationEnabled = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notifications disabled')),
+        );
+      }
+      return;
+    }
+    
+    if (currentStatus.isPermanentlyDenied) {
+      if (mounted) {
+        final shouldOpen = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Permission Required'),
+            content: const Text(
+              'Notification permission is permanently denied. Please enable it in app settings.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Open Settings'),
+              ),
+            ],
+          ),
+        );
+        
+        if (shouldOpen == true) {
+          await openAppSettings();
+          // Check again after opening settings
+          await _checkNotificationPermission();
+        }
+      }
+      return;
+    }
+    
+    // Request permission
     final status = await Permission.notification.request();
+    setState(() {
+      _notificationEnabled = status.isGranted;
+    });
+    
     if (status.isGranted) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Notification permission granted')),
         );
       }
-    } else {
+    } else if (status.isDenied) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Notification permission denied')),
@@ -118,8 +180,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             children: [
               _LanguageTile(
                 locale: locale,
-                onLocaleChanged: (newLocale) {
+                onLocaleChanged: (newLocale) async {
                   ref.read(localeProvider.notifier).setLocale(newLocale);
+                  // Reload translations when locale changes
+                  await Translations.load(newLocale);
+                  if (mounted) {
+                    setState(() {}); // Trigger rebuild to show new translations
+                  }
                 },
               ),
             ],
@@ -149,7 +216,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               SwitchListTile(
                 title: const Text('Push Notifications'),
                 subtitle: const Text('Receive notifications about new promo codes'),
-                value: false, // TODO: Implement notification state
+                value: _notificationEnabled,
                 onChanged: (value) => _requestNotificationPermission(),
                 secondary: const Icon(Icons.notifications_outlined),
               ),
