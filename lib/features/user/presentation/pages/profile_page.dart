@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/promo_code_card.dart';
 import '../../domain/entities/user.dart';
-import '../../domain/usecases/get_user_by_id.dart';
+import '../providers/user_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../promo_codes/presentation/pages/details_page.dart';
@@ -38,18 +38,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
 
     // Load user
-    final getUserByIdProvider = Provider<GetUserById>((ref) {
-      return GetUserById(DependencyInjection.userRepository);
-    });
     final getUserUseCase = ref.read(getUserByIdProvider);
     final userResult = await getUserUseCase(targetUserId);
     userResult.fold(
       (failure) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${failure.message}')));
+        print('🔴 Profile: Error loading user: ${failure.message}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${failure.message ?? "Failed to load user"}')),
+          );
+        }
+        setState(() {
+          _user = null;
+        });
       },
       (user) {
+        print('✅ Profile: User loaded - Karma: ${user.karma}');
         setState(() {
           _user = user;
         });
@@ -61,12 +65,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final codesResult = await repo.getUserPromoCodes(targetUserId);
     codesResult.fold(
       (failure) {
-        // Silent fail for codes
+        print('🔴 Profile: Error loading promo codes: ${failure.message}');
         setState(() {
           _userPromoCodes = [];
         });
       },
       (codes) {
+        print('✅ Profile: Loaded ${codes.length} promo codes');
         setState(() {
           _userPromoCodes = codes;
         });
@@ -97,8 +102,36 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       );
     }
 
+    final isCurrentUser = currentUser?.id == _user!.id;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        actions: [
+          if (isCurrentUser)
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                final authRepo = DependencyInjection.authRepository;
+                final result = await authRepo.signOut();
+                result.fold(
+                  (failure) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: ${failure.message ?? "Failed to sign out"}'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  },
+                  (_) {
+                    // Success - auth state will update automatically
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                );
+              },
+            ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -158,7 +191,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         const Icon(Icons.star, color: AppColors.black),
                         const SizedBox(width: 8),
                         Text(
-                          'Karma: ${_user!.karma}',
+                          'Credibility: ${_user!.karma}',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: AppColors.black,
@@ -219,6 +252,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             ),
                           );
                         },
+                        onUpvote: null, // Disable voting on own codes in profile
+                        onDownvote: null,
                       ),
                     ),
                 ],
