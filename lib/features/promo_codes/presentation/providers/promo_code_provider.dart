@@ -37,10 +37,12 @@ final getPromoCodeByIdProvider = Provider<GetPromoCodeById>((ref) {
 
 class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
   final GetPromoCodes getPromoCodes;
-  String? serviceFilter;
+  String? _serviceFilter;
   SortOption sortOption = SortOption.mostRecent;
   String? lastDocumentId;
   bool hasMore = true;
+
+  String? get serviceFilter => _serviceFilter;
 
   PromoCodesNotifier(this.getPromoCodes) : super(const AsyncValue.loading()) {
     loadPromoCodes();
@@ -56,7 +58,7 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
     if (!hasMore && !refresh) return;
 
     final result = await getPromoCodes(
-      serviceFilter: serviceFilter,
+      serviceFilter: _serviceFilter,
       sortOption: sortOption,
       limit: 20,
       lastDocumentId: lastDocumentId,
@@ -79,13 +81,67 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
   }
 
   void setFilter(String? service) {
-    serviceFilter = service;
+    _serviceFilter = service;
     loadPromoCodes(refresh: true);
   }
 
   void setSortOption(SortOption sort) {
     sortOption = sort;
     loadPromoCodes(refresh: true);
+  }
+
+  // Optimistically update vote state without reloading
+  void updatePromoCodeVote(String promoCodeId, String userId, bool isUpvote) {
+    final currentList = state.value;
+    if (currentList == null) return;
+
+    final updatedList = currentList.map((code) {
+      if (code.id != promoCodeId) return code;
+
+      final wasUpvoted = code.upvotedBy.contains(userId);
+      final wasDownvoted = code.downvotedBy.contains(userId);
+
+      List<String> newUpvotedBy = List.from(code.upvotedBy);
+      List<String> newDownvotedBy = List.from(code.downvotedBy);
+      int newUpvotes = code.upvotes;
+      int newDownvotes = code.downvotes;
+
+      // Ensure mutual exclusivity - remove from both lists first
+      if (newUpvotedBy.contains(userId)) {
+        newUpvotedBy.remove(userId);
+        newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
+      }
+      if (newDownvotedBy.contains(userId)) {
+        newDownvotedBy.remove(userId);
+        newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
+      }
+
+      // Now add to the appropriate list
+      if (isUpvote) {
+        if (!wasUpvoted) {
+          // Add upvote (only if wasn't already upvoted)
+          newUpvotedBy.add(userId);
+          newUpvotes = newUpvotes + 1;
+        }
+        // If was upvoted, we already removed it above, so do nothing
+      } else {
+        if (!wasDownvoted) {
+          // Add downvote (only if wasn't already downvoted)
+          newDownvotedBy.add(userId);
+          newDownvotes = newDownvotes + 1;
+        }
+        // If was downvoted, we already removed it above, so do nothing
+      }
+
+      return code.copyWith(
+        upvotes: newUpvotes,
+        downvotes: newDownvotes,
+        upvotedBy: newUpvotedBy,
+        downvotedBy: newDownvotedBy,
+      );
+    }).toList();
+
+    state = AsyncValue.data(updatedList);
   }
 }
 

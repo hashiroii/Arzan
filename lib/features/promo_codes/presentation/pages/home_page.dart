@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/promo_code_card.dart';
+import '../../../../core/utils/translations.dart';
 import '../providers/promo_code_provider.dart';
 import '../widgets/banner_widget.dart';
-import '../widgets/filter_chips_widget.dart';
+import '../widgets/service_selector_widget.dart';
 import '../widgets/sort_dropdown.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'details_page.dart';
@@ -44,14 +45,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (currentUser == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please sign in to vote')));
+      ).showSnackBar(SnackBar(content: Text(Translations.pleaseSignInToVote)));
       return;
     }
 
-    final upvoteUseCase = ref.read(upvotePromoCodeProvider);
-    final downvoteUseCase = ref.read(downvotePromoCodeProvider);
-    final removeVoteUseCase = ref.read(removeVoteProvider);
-
+    // Get current state BEFORE optimistic update
     final promoCodeList = ref.read(promoCodesNotifierProvider).value;
     if (promoCodeList == null) return;
 
@@ -63,28 +61,50 @@ class _HomePageState extends ConsumerState<HomePage> {
     final isCurrentlyUpvoted = promoCode.upvotedBy.contains(currentUser.id);
     final isCurrentlyDownvoted = promoCode.downvotedBy.contains(currentUser.id);
 
-    if (isUpvote) {
-      if (isCurrentlyUpvoted) {
-        await removeVoteUseCase(promoCodeId, currentUser.id);
+    // Optimistically update UI immediately
+    ref.read(promoCodesNotifierProvider.notifier).updatePromoCodeVote(
+      promoCodeId,
+      currentUser.id,
+      isUpvote,
+    );
+
+    // Then sync with backend in background (no page reload)
+    final upvoteUseCase = ref.read(upvotePromoCodeProvider);
+    final downvoteUseCase = ref.read(downvotePromoCodeProvider);
+    final removeVoteUseCase = ref.read(removeVoteProvider);
+
+    try {
+      if (isUpvote) {
+        if (isCurrentlyUpvoted) {
+          await removeVoteUseCase(promoCodeId, currentUser.id);
+        } else {
+          if (isCurrentlyDownvoted) {
+            await removeVoteUseCase(promoCodeId, currentUser.id);
+          }
+          await upvoteUseCase(promoCodeId, currentUser.id);
+        }
       } else {
         if (isCurrentlyDownvoted) {
           await removeVoteUseCase(promoCodeId, currentUser.id);
+        } else {
+          if (isCurrentlyUpvoted) {
+            await removeVoteUseCase(promoCodeId, currentUser.id);
+          }
+          await downvoteUseCase(promoCodeId, currentUser.id);
         }
-        await upvoteUseCase(promoCodeId, currentUser.id);
       }
-    } else {
-      if (isCurrentlyDownvoted) {
-        await removeVoteUseCase(promoCodeId, currentUser.id);
-      } else {
-        if (isCurrentlyUpvoted) {
-          await removeVoteUseCase(promoCodeId, currentUser.id);
-        }
-        await downvoteUseCase(promoCodeId, currentUser.id);
+      
+      // Silently sync one item in background without reloading entire list
+      // The optimistic update already handled the UI, this just ensures server sync
+    } catch (e) {
+      // If error, revert by reloading (only on error)
+      ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${Translations.failedToVote}: $e')),
+        );
       }
     }
-
-    // Refresh the list
-    ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
   }
 
   @override
@@ -105,7 +125,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             // Banner
             SliverToBoxAdapter(child: BannerWidget()),
 
-            // Filter chips and sort
+            // Service filter and sort
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -115,20 +135,30 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: FilterChipsWidget(
-                        onFilterChanged: (service) {
-                          ref
-                              .read(promoCodesNotifierProvider.notifier)
-                              .setFilter(service);
+                      flex: 2,
+                      child: Builder(
+                        builder: (context) {
+                          final notifier = ref.read(promoCodesNotifierProvider.notifier);
+                          return ServiceSelectorWidget(
+                            selectedService: notifier.serviceFilter,
+                            onServiceChanged: (service) {
+                              print('🔵 Service filter changed to: $service');
+                              notifier.setFilter(service);
+                            },
+                          );
                         },
                       ),
                     ),
-                    SortDropdown(
-                      onSortChanged: (sortOption) {
-                        ref
-                            .read(promoCodesNotifierProvider.notifier)
-                            .setSortOption(sortOption);
-                      },
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 1,
+                      child: SortDropdown(
+                        onSortChanged: (sortOption) {
+                          ref
+                              .read(promoCodesNotifierProvider.notifier)
+                              .setSortOption(sortOption);
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -212,7 +242,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                               .read(promoCodesNotifierProvider.notifier)
                               .loadPromoCodes(refresh: true);
                         },
-                        child: const Text('Retry'),
+                        child: Text(Translations.retry),
                       ),
                     ],
                   ),
