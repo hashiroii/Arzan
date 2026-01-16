@@ -1,0 +1,19 @@
+Copy these EXACTLY as shown (no spaces before/after):
+
+SHA-1:
+54:47:A6:75:A7:CF:31:4A:E6:54:3A:26:B1:C5:42:A8:E5:0F:9B:0C
+
+SHA-256:
+6D:E9:F8:E2:32:C9:8C:74:25:F0:80:EE:09:02:AD:21:2B:43:6E:51:72:CF:36:0C:DA:7F:AD:3F:D9:18:28:2C
+
+Instructions:
+1. Copy the SHA-1 line (without the "SHA-1:" label)
+2. Paste it in Firebase Console
+3. Copy the SHA-256 line (without the "SHA-256:" label)
+4. Paste it in Firebase Console
+
+Make sure:
+- No extra spaces at the beginning or end
+- All colons (:) are included
+- No line breaks in the middle
+- Copy the entire string
