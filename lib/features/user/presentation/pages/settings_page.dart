@@ -182,7 +182,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 locale: locale,
                 onLocaleChanged: (newLocale) async {
                   ref.read(localeProvider.notifier).setLocale(newLocale);
-                  // Reload translations when locale changes
                   await Translations.load(newLocale);
                   if (mounted) {
                     setState(() {}); // Trigger rebuild to show new translations

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/dependency_injection.dart';
+import '../../../../core/utils/logger.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -20,11 +21,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
 
     try {
-      print('🔵 LoginPage: Starting Google Sign-In...');
       final result = await DependencyInjection.authRepository.signInWithGoogle();
       result.fold(
         (failure) {
-          print('🔴 LoginPage: Sign-In failed - ${failure.message}');
+          AppLogger.error('Sign-In failed', failure, null, 'LoginPage');
           String errorMessage = 'Sign in failed';
           if (failure.message != null) {
             errorMessage = failure.message!;
@@ -64,7 +64,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           }
         },
         (user) {
-          // Success - auth state will update automatically
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -186,12 +185,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             _isLoading = true;
                           });
                           try {
-                            print('🔵 LoginPage: Starting anonymous sign-in...');
                             final result = await DependencyInjection.authRepository
                                 .signInAnonymously();
                             result.fold(
                               (failure) {
-                                print('🔴 LoginPage: Anonymous sign-in failed - ${failure.message}');
+                                AppLogger.error('Anonymous sign-in failed', failure, null, 'LoginPage');
                                 if (mounted) {
                                   String errorMsg = failure.message ?? 'Unknown error';
                                   if (errorMsg.contains('OPERATION_NOT_ALLOWED') ||
@@ -209,13 +207,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   );
                                 }
                               },
-                              (user) {
-                                print('✅ LoginPage: Anonymous sign-in successful');
-                                // Success - auth state will update automatically
-                              },
+                              (user) {},
                             );
                           } catch (e) {
-                            print('🔴 LoginPage: Exception during anonymous sign-in: $e');
+                            AppLogger.error('Exception during anonymous sign-in', e, null, 'LoginPage');
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

@@ -44,30 +44,29 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
       // Apply service filter
       if (serviceFilter != null && serviceFilter.isNotEmpty) {
         query = query.where('serviceName', isEqualTo: serviceFilter);
+        // If filtering by service, don't use orderBy to avoid index requirement
+        // We'll sort in memory instead
+      } else {
+        // Only use orderBy when not filtering to avoid composite index requirement
+        switch (sortOption) {
+          case SortOption.publishTime:
+          case SortOption.mostRecent:
+            query = query.orderBy('publishDate', descending: true);
+            break;
+          case SortOption.expirationDate:
+            query = query.orderBy('expirationDate', descending: false);
+            break;
+          case SortOption.alphabetical:
+            query = query.orderBy('serviceName', descending: false);
+            break;
+          case SortOption.mostUpvoted:
+            query = query.orderBy('upvotes', descending: true);
+            break;
+        }
       }
 
-      // Apply sorting
-      switch (sortOption) {
-        case SortOption.publishTime:
-          query = query.orderBy('publishDate', descending: true);
-          break;
-        case SortOption.expirationDate:
-          query = query.orderBy('expirationDate', descending: false);
-          break;
-        case SortOption.alphabetical:
-          query = query.orderBy('serviceName', descending: false);
-          break;
-        case SortOption.mostUpvoted:
-          query = query.orderBy('upvotes', descending: true);
-          break;
-        case SortOption.mostRecent:
-        default:
-          query = query.orderBy('publishDate', descending: true);
-          break;
-      }
-
-      // Apply pagination
-      if (lastDocumentId != null) {
+      // Apply pagination (only if we have orderBy)
+      if (lastDocumentId != null && (serviceFilter == null || serviceFilter.isEmpty)) {
         final lastDoc = await firestore.collection('promoCodes').doc(lastDocumentId).get();
         query = query.startAfterDocument(lastDoc);
       }
@@ -75,7 +74,33 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
       query = query.limit(limit);
 
       final snapshot = await query.get();
-      return snapshot.docs.map((doc) => PromoCodeModel.fromFirestore(doc)).toList();
+      var models = snapshot.docs.map((doc) => PromoCodeModel.fromFirestore(doc)).toList();
+      
+      // Sort in memory if we filtered by service
+      if (serviceFilter != null && serviceFilter.isNotEmpty) {
+        switch (sortOption) {
+          case SortOption.publishTime:
+          case SortOption.mostRecent:
+            models.sort((a, b) => b.publishDate.compareTo(a.publishDate));
+            break;
+          case SortOption.expirationDate:
+            models.sort((a, b) {
+              if (a.expirationDate == null && b.expirationDate == null) return 0;
+              if (a.expirationDate == null) return 1;
+              if (b.expirationDate == null) return -1;
+              return a.expirationDate!.compareTo(b.expirationDate!);
+            });
+            break;
+          case SortOption.alphabetical:
+            models.sort((a, b) => a.serviceName.compareTo(b.serviceName));
+            break;
+          case SortOption.mostUpvoted:
+            models.sort((a, b) => b.upvotes.compareTo(a.upvotes));
+            break;
+        }
+      }
+      
+      return models;
     } catch (e) {
       throw ServerFailure(e.toString());
     }
@@ -133,7 +158,6 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
       final upvotedBy = List<String>.from(data['upvotedBy'] ?? []);
       final downvotedBy = List<String>.from(data['downvotedBy'] ?? []);
 
-      // Remove from downvotes if exists
       if (downvotedBy.contains(userId)) {
         downvotedBy.remove(userId);
         await docRef.update({
@@ -142,7 +166,6 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
         });
       }
 
-      // Add to upvotes if not already there
       if (!upvotedBy.contains(userId)) {
         upvotedBy.add(userId);
         await docRef.update({
@@ -169,7 +192,6 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
       final upvotedBy = List<String>.from(data['upvotedBy'] ?? []);
       final downvotedBy = List<String>.from(data['downvotedBy'] ?? []);
 
-      // Remove from upvotes if exists
       if (upvotedBy.contains(userId)) {
         upvotedBy.remove(userId);
         await docRef.update({
@@ -178,7 +200,6 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
         });
       }
 
-      // Add to downvotes if not already there
       if (!downvotedBy.contains(userId)) {
         downvotedBy.add(userId);
         await docRef.update({
@@ -228,13 +249,21 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
   @override
   Future<List<PromoCodeModel>> getUserPromoCodes(String userId) async {
     try {
+      // Fetch without orderBy to avoid requiring composite index
+      // We'll sort in memory instead
       final snapshot = await firestore
           .collection('promoCodes')
           .where('authorId', isEqualTo: userId)
-          .orderBy('publishDate', descending: true)
           .get();
 
-      return snapshot.docs.map((doc) => PromoCodeModel.fromFirestore(doc)).toList();
+      final models = snapshot.docs
+          .map((doc) => PromoCodeModel.fromFirestore(doc))
+          .toList();
+      
+      // Sort by publishDate descending in memory
+      models.sort((a, b) => b.publishDate.compareTo(a.publishDate));
+      
+      return models;
     } catch (e) {
       throw ServerFailure(e.toString());
     }

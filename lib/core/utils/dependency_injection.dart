@@ -32,8 +32,12 @@ class DependencyInjection {
     final userRemoteDataSource = UserRemoteDataSourceImpl(firestore);
 
     authRepository = AuthRepositoryImpl(authRemoteDataSource);
-    promoCodeRepository = PromoCodeRepositoryImpl(promoCodeRemoteDataSource);
     userRepository = UserRepositoryImpl(userRemoteDataSource);
+    promoCodeRepository = PromoCodeRepositoryImpl(
+      promoCodeRemoteDataSource,
+      userRemoteDataSource,
+      userRepository,
+    );
   }
 
   static late AuthRepository authRepository;

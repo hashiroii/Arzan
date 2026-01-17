@@ -13,8 +13,6 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<Either<Failure, User>> getCurrentUser() async {
     try {
-      // This should get userId from auth service
-      // For now, we'll need to pass it through context
       throw UnimplementedError('getCurrentUser requires userId from auth');
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -84,8 +82,6 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<Either<Failure, void>> recalculateUserKarma(String userId) async {
     try {
-      // This will be called from promo code repository after calculating total karma
-      // The actual calculation happens in promo code repository
       return const Right(null);
     } on ServerFailure catch (e) {
       return Left(e);

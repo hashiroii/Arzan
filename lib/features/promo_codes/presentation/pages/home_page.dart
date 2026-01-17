@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/promo_code_card.dart';
 import '../../../../core/utils/translations.dart';
+import '../../../../core/utils/logger.dart';
 import '../providers/promo_code_provider.dart';
 import '../widgets/banner_widget.dart';
 import '../widgets/service_selector_widget.dart';
@@ -49,26 +50,22 @@ class _HomePageState extends ConsumerState<HomePage> {
       return;
     }
 
-    // Get current state BEFORE optimistic update
     final promoCodeList = ref.read(promoCodesNotifierProvider).value;
     if (promoCodeList == null) return;
 
     final promoCode = promoCodeList.firstWhere(
       (code) => code.id == promoCodeId,
-      orElse: () => promoCodeList.first, // Fallback
+      orElse: () => promoCodeList.first,
     );
 
     final isCurrentlyUpvoted = promoCode.upvotedBy.contains(currentUser.id);
     final isCurrentlyDownvoted = promoCode.downvotedBy.contains(currentUser.id);
 
-    // Optimistically update UI immediately
     ref.read(promoCodesNotifierProvider.notifier).updatePromoCodeVote(
       promoCodeId,
       currentUser.id,
       isUpvote,
     );
-
-    // Then sync with backend in background (no page reload)
     final upvoteUseCase = ref.read(upvotePromoCodeProvider);
     final downvoteUseCase = ref.read(downvotePromoCodeProvider);
     final removeVoteUseCase = ref.read(removeVoteProvider);
@@ -93,11 +90,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           await downvoteUseCase(promoCodeId, currentUser.id);
         }
       }
-      
-      // Silently sync one item in background without reloading entire list
-      // The optimistic update already handled the UI, this just ensures server sync
     } catch (e) {
-      // If error, revert by reloading (only on error)
       ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -142,7 +135,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                           return ServiceSelectorWidget(
                             selectedService: notifier.serviceFilter,
                             onServiceChanged: (service) {
-                              print('🔵 Service filter changed to: $service');
                               notifier.setFilter(service);
                             },
                           );

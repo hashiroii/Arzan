@@ -71,7 +71,6 @@ class Translations {
   static String get selected => translate('selected');
 }
 
-// Provider to watch locale changes and reload translations
 final translationsProvider = FutureProvider<void>((ref) async {
   final locale = ref.watch(localeProvider);
   await Translations.load(locale);

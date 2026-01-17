@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/promo_code_card.dart';
+import '../../../../core/utils/logger.dart';
 import '../../domain/entities/user.dart';
 import '../providers/user_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
@@ -35,14 +36,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Reload data when dependencies change (e.g., when user signs in)
     final currentUser = ref.read(currentUserProvider);
     if (currentUser != null && _user?.id != currentUser.id) {
       _loadUserData();
     }
   }
 
-  // Refresh user data when returning to this page
   Future<void> _refreshData() async {
     await _loadUserData();
   }
@@ -50,7 +49,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   void didUpdateWidget(ProfilePage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reload if user ID changed
     if (oldWidget.userId != widget.userId) {
       _loadUserData();
     }
@@ -63,7 +61,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     final targetUserId = widget.userId ?? ref.read(currentUserProvider)?.id;
     if (targetUserId == null) {
-      print('🔴 Profile: No user ID available');
+      AppLogger.warning('No user ID available', 'Profile');
       setState(() {
         _isLoading = false;
         _user = null;
@@ -72,29 +70,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       return;
     }
 
-    print('🔵 Profile: Loading data for user ID: $targetUserId');
-
     try {
-      // Load user and promo codes in parallel
       final getUserUseCase = ref.read(getUserByIdProvider);
       final repo = DependencyInjection.promoCodeRepository;
 
       final codesResult = await repo.getUserPromoCodes(targetUserId);
 
-      // Recalculate karma from all promo codes before loading user
-      // This ensures karma is accurate
       final promoCodeRepo = DependencyInjection.promoCodeRepository;
       if (promoCodeRepo is PromoCodeRepositoryImpl) {
         await promoCodeRepo.recalculateUserKarma(targetUserId);
       }
 
-      // Load user after recalculating karma
       final userResult = await getUserUseCase(targetUserId);
 
-      // Handle user result
       userResult.fold(
         (failure) {
-          print('🔴 Profile: Error loading user: ${failure.message}');
+          AppLogger.error('Error loading user', failure, null, 'Profile');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Error: ${failure.message ?? "Failed to load user"}')),
@@ -105,12 +96,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           });
         },
         (user) {
-          print('✅ Profile: User loaded successfully');
-          print('   - ID: ${user.id}');
-          print('   - Email: ${user.email}');
-          print('   - Display Name: ${user.displayName ?? "null"}');
-          print('   - Karma: ${user.karma}');
-          print('   - Photo URL: ${user.photoUrl ?? "null"}');
           if (mounted) {
             setState(() {
               _user = user;
@@ -119,10 +104,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         },
       );
 
-      // Handle promo codes result
       codesResult.fold(
         (failure) {
-          print('🔴 Profile: Error loading promo codes: ${failure.message}');
+          AppLogger.error('Error loading promo codes', failure, null, 'Profile');
           if (mounted) {
             setState(() {
               _userPromoCodes = [];
@@ -130,10 +114,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           }
         },
         (codes) {
-          print('✅ Profile: Loaded ${codes.length} promo codes');
-          for (var code in codes) {
-            print('   - Code: ${code.code}, Service: ${code.serviceName}, Author ID: ${code.authorId}');
-          }
           if (mounted) {
             setState(() {
               _userPromoCodes = codes;
@@ -142,7 +122,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         },
       );
     } catch (e) {
-      print('🔴 Profile: Unexpected error: $e');
+      AppLogger.error('Unexpected error', e, null, 'Profile');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Unexpected error: $e')),
@@ -203,7 +183,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     );
                   },
                   (_) {
-                    // Success - auth state will update automatically
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },
                 );
@@ -247,7 +226,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   const SizedBox(height: 8),
 
-                  // Email
                   Text(
                     _user!.email,
                     style: Theme.of(context).textTheme.bodyMedium,
@@ -330,12 +308,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                   DetailsPage(promoCodeId: code.id),
                             ),
                           );
-                          // Refresh profile data when returning from details
                           if (mounted) {
                             _refreshData();
                           }
                         },
-                        onUpvote: null, // Disable voting on own codes in profile
+                        onUpvote: null,
                         onDownvote: null,
                       ),
                     ),

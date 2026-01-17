@@ -15,7 +15,6 @@ import 'features/user/presentation/pages/settings_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DependencyInjection.init();
-  // Load initial translations
   await Translations.load(const Locale('en'));
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -29,7 +28,6 @@ class MyApp extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final translationsAsync = ref.watch(translationsProvider);
 
-    // Reload translations when locale changes
     translationsAsync.whenData((_) async {
       await Translations.load(locale);
     });

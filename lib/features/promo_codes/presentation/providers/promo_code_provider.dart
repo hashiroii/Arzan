@@ -90,7 +90,6 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
     loadPromoCodes(refresh: true);
   }
 
-  // Optimistically update vote state without reloading
   void updatePromoCodeVote(String promoCodeId, String userId, bool isUpvote) {
     final currentList = state.value;
     if (currentList == null) return;
@@ -106,7 +105,6 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
       int newUpvotes = code.upvotes;
       int newDownvotes = code.downvotes;
 
-      // Ensure mutual exclusivity - remove from both lists first
       if (newUpvotedBy.contains(userId)) {
         newUpvotedBy.remove(userId);
         newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
@@ -116,21 +114,16 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
         newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
       }
 
-      // Now add to the appropriate list
       if (isUpvote) {
         if (!wasUpvoted) {
-          // Add upvote (only if wasn't already upvoted)
           newUpvotedBy.add(userId);
           newUpvotes = newUpvotes + 1;
         }
-        // If was upvoted, we already removed it above, so do nothing
       } else {
         if (!wasDownvoted) {
-          // Add downvote (only if wasn't already downvoted)
           newDownvotedBy.add(userId);
           newDownvotes = newDownvotes + 1;
         }
-        // If was downvoted, we already removed it above, so do nothing
       }
 
       return code.copyWith(

@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/vote_button.dart';
 import '../../../../core/utils/translations.dart';
+import '../../../../core/utils/logger.dart';
 import '../../domain/entities/promo_code.dart';
 import '../../domain/usecases/get_promo_code_by_id.dart';
 import '../../domain/usecases/vote_promo_code.dart';
@@ -61,7 +62,6 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
 
     if (_promoCode == null) return;
 
-    // Optimistically update UI immediately
     final wasUpvoted = _promoCode!.upvotedBy.contains(currentUser.id);
     final wasDownvoted = _promoCode!.downvotedBy.contains(currentUser.id);
 
@@ -70,7 +70,6 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
     int newUpvotes = _promoCode!.upvotes;
     int newDownvotes = _promoCode!.downvotes;
 
-    // Ensure mutual exclusivity - remove from both lists first
     if (newUpvotedBy.contains(currentUser.id)) {
       newUpvotedBy.remove(currentUser.id);
       newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
@@ -80,21 +79,16 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
       newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
     }
 
-    // Now add to the appropriate list
     if (isUpvote) {
       if (!wasUpvoted) {
-        // Add upvote (only if wasn't already upvoted)
         newUpvotedBy.add(currentUser.id);
         newUpvotes = newUpvotes + 1;
       }
-      // If was upvoted, we already removed it above, so do nothing
     } else {
       if (!wasDownvoted) {
-        // Add downvote (only if wasn't already downvoted)
         newDownvotedBy.add(currentUser.id);
         newDownvotes = newDownvotes + 1;
       }
-      // If was downvoted, we already removed it above, so do nothing
     }
 
     setState(() {
@@ -106,7 +100,6 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
       );
     });
 
-    // Then sync with backend in background
     final upvoteUseCase = ref.read(upvotePromoCodeProvider);
     final downvoteUseCase = ref.read(downvotePromoCodeProvider);
     final removeVoteUseCase = ref.read(removeVoteProvider);
@@ -132,29 +125,24 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
         }
       }
       
-      // Update home page provider to sync vote state
       ref.read(promoCodesNotifierProvider.notifier).updatePromoCodeVote(
         widget.promoCodeId,
         currentUser.id,
         isUpvote,
       );
       
-      // Silently refresh to sync with server (without blocking UI)
-      // Delay to avoid blocking navigation
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
           _loadPromoCode().catchError((e) {
-            print('Background refresh error: $e');
+            AppLogger.error('Background refresh error', e, null, 'Details');
           });
         }
       });
     } catch (e) {
-      // If error, show message but don't block
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to vote: $e')),
         );
-        // Revert optimistic update by reloading
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
             _loadPromoCode();
@@ -396,7 +384,6 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
               ),
             const SizedBox(height: 24),
 
-            // Details
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),

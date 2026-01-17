@@ -22,8 +22,6 @@ class LocaleNotifier extends StateNotifier<Locale> {
   }
   
   Future<void> reloadTranslations() async {
-    // This will trigger the translationsProvider to reload
-    // The provider watches localeProvider, so changing state will reload
-    state = state; // Trigger rebuild
+    state = state;
   }
 }

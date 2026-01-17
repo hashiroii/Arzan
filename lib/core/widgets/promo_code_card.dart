@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../features/promo_codes/domain/entities/promo_code.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../data/services_data.dart';
-import '../utils/translations.dart';
 
 class PromoCodeCard extends StatelessWidget {
   final PromoCode promoCode;
@@ -24,13 +22,9 @@ class PromoCodeCard extends StatelessWidget {
   });
 
   bool get isUpvoted =>
-      currentUserId != null && 
-      promoCode.upvotedBy.contains(currentUserId!) &&
-      !promoCode.downvotedBy.contains(currentUserId!); // Ensure mutual exclusivity
+      currentUserId != null && promoCode.upvotedBy.contains(currentUserId!);
   bool get isDownvoted =>
-      currentUserId != null && 
-      promoCode.downvotedBy.contains(currentUserId!) &&
-      !promoCode.upvotedBy.contains(currentUserId!); // Ensure mutual exclusivity
+      currentUserId != null && promoCode.downvotedBy.contains(currentUserId!);
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +42,15 @@ class PromoCodeCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header: Service logo, service name, and credibility (karma) on top right
+              // Header
               Row(
                 children: [
-                  // Service logo on left
+                  // Service logo
                   Builder(
                     builder: (context) {
-                      final service = ServicesData.getServiceByName(promoCode.serviceName);
+                      final service = ServicesData.getServiceByName(
+                        promoCode.serviceName,
+                      );
                       if (service != null && service.logoUrl.isNotEmpty) {
                         return Container(
                           width: 40,
@@ -142,7 +138,9 @@ class PromoCodeCard extends StatelessWidget {
                           Text(
                             'by ${promoCode.author!.displayName ?? 'Anonymous'}',
                             style: AppTextStyles.caption.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.6,
+                              ),
                             ),
                           ),
                       ],
@@ -184,51 +182,31 @@ class PromoCodeCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Promo Code with Copy Button
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 20,
-                        horizontal: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: theme.colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          promoCode.code,
-                          style: AppTextStyles.promoCode.copyWith(
-                            color: AppColors
-                                .black, // Black text for better visibility on yellow
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+              // Promo Code
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.colorScheme.primary,
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    promoCode.code,
+                    style: AppTextStyles.promoCode.copyWith(
+                      color: AppColors
+                          .black, // Black text for better visibility on yellow
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.copy),
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: promoCode.code));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(Translations.copied(promoCode.code)),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                    tooltip: 'Copy promo code',
-                    color: theme.colorScheme.primary,
-                  ),
-                ],
+                ),
               ),
               const SizedBox(height: 12),
 
@@ -264,8 +242,8 @@ class PromoCodeCard extends StatelessWidget {
                           Flexible(
                             child: Text(
                               isExpired
-                                  ? Translations.expired
-                                  : '${Translations.expires} ${_formatDate(promoCode.expirationDate!)}',
+                                  ? 'Expired'
+                                  : 'Expires ${_formatDate(promoCode.expirationDate!)}',
                               style: AppTextStyles.caption.copyWith(
                                 color: isExpired
                                     ? AppColors.error
@@ -281,7 +259,7 @@ class PromoCodeCard extends StatelessWidget {
                   else
                     Expanded(
                       child: Text(
-                        Translations.noExpiration,
+                        'No expiration',
                         style: AppTextStyles.caption.copyWith(
                           color: theme.colorScheme.onSurface.withOpacity(0.6),
                         ),

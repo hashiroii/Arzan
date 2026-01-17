@@ -12,7 +12,6 @@ class BannerWidget extends StatefulWidget {
 class _BannerWidgetState extends State<BannerWidget> {
   int _currentIndex = 0;
 
-  // Placeholder banners - will be replaced with actual ads or banners
   final List<Widget> _banners = [
     _BannerItem(
       title: 'Welcome to Arzan',
