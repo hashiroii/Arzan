@@ -105,30 +105,35 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
       int newUpvotes = code.upvotes;
       int newDownvotes = code.downvotes;
 
-      if (newUpvotedBy.contains(userId)) {
-        newUpvotedBy.remove(userId);
-        newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
-      }
-      if (newDownvotedBy.contains(userId)) {
-        newDownvotedBy.remove(userId);
-        newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
-      }
-
       if (isUpvote) {
-        if (!wasUpvoted) {
+        if (wasUpvoted) {
+          newUpvotedBy.remove(userId);
+          newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
+        } else {
+          if (wasDownvoted) {
+            newDownvotedBy.remove(userId);
+            newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
+          }
           newUpvotedBy.add(userId);
           newUpvotes = newUpvotes + 1;
         }
       } else {
-        if (!wasDownvoted) {
+        if (wasDownvoted) {
+          newDownvotedBy.remove(userId);
+          newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
+        } else {
+          if (wasUpvoted) {
+            newUpvotedBy.remove(userId);
+            newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
+          }
           newDownvotedBy.add(userId);
           newDownvotes = newDownvotes + 1;
         }
       }
 
       return code.copyWith(
-        upvotes: newUpvotes,
-        downvotes: newDownvotes,
+        upvotes: newUpvotes.clamp(0, double.infinity).toInt(),
+        downvotes: newDownvotes.clamp(0, double.infinity).toInt(),
         upvotedBy: newUpvotedBy,
         downvotedBy: newDownvotedBy,
       );

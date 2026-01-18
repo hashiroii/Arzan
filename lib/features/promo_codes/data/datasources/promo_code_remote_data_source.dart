@@ -158,15 +158,20 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
       final upvotedBy = List<String>.from(data['upvotedBy'] ?? []);
       final downvotedBy = List<String>.from(data['downvotedBy'] ?? []);
 
-      if (downvotedBy.contains(userId)) {
-        downvotedBy.remove(userId);
+      if (upvotedBy.contains(userId)) {
+        upvotedBy.remove(userId);
         await docRef.update({
-          'downvotes': FieldValue.increment(-1),
-          'downvotedBy': downvotedBy,
+          'upvotes': FieldValue.increment(-1),
+          'upvotedBy': upvotedBy,
         });
-      }
-
-      if (!upvotedBy.contains(userId)) {
+      } else {
+        if (downvotedBy.contains(userId)) {
+          downvotedBy.remove(userId);
+          await docRef.update({
+            'downvotes': FieldValue.increment(-1),
+            'downvotedBy': downvotedBy,
+          });
+        }
         upvotedBy.add(userId);
         await docRef.update({
           'upvotes': FieldValue.increment(1),
@@ -192,15 +197,20 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
       final upvotedBy = List<String>.from(data['upvotedBy'] ?? []);
       final downvotedBy = List<String>.from(data['downvotedBy'] ?? []);
 
-      if (upvotedBy.contains(userId)) {
-        upvotedBy.remove(userId);
+      if (downvotedBy.contains(userId)) {
+        downvotedBy.remove(userId);
         await docRef.update({
-          'upvotes': FieldValue.increment(-1),
-          'upvotedBy': upvotedBy,
+          'downvotes': FieldValue.increment(-1),
+          'downvotedBy': downvotedBy,
         });
-      }
-
-      if (!downvotedBy.contains(userId)) {
+      } else {
+        if (upvotedBy.contains(userId)) {
+          upvotedBy.remove(userId);
+          await docRef.update({
+            'upvotes': FieldValue.increment(-1),
+            'upvotedBy': upvotedBy,
+          });
+        }
         downvotedBy.add(userId);
         await docRef.update({
           'downvotes': FieldValue.increment(1),

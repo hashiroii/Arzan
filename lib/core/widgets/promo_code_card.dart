@@ -22,9 +22,13 @@ class PromoCodeCard extends StatelessWidget {
   });
 
   bool get isUpvoted =>
-      currentUserId != null && promoCode.upvotedBy.contains(currentUserId!);
+      currentUserId != null && 
+      promoCode.upvotedBy.contains(currentUserId!) &&
+      !promoCode.downvotedBy.contains(currentUserId!);
   bool get isDownvoted =>
-      currentUserId != null && promoCode.downvotedBy.contains(currentUserId!);
+      currentUserId != null && 
+      promoCode.downvotedBy.contains(currentUserId!) &&
+      !promoCode.upvotedBy.contains(currentUserId!);
 
   @override
   Widget build(BuildContext context) {
@@ -34,197 +38,186 @@ class PromoCodeCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Service logo
-                  Builder(
-                    builder: (context) {
-                      final service = ServicesData.getServiceByName(
-                        promoCode.serviceName,
-                      );
-                      if (service != null && service.logoUrl.isNotEmpty) {
-                        return Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: theme.colorScheme.primary.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(7),
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withOpacity(0.2),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Builder(
+                      builder: (context) {
+                        final service = ServicesData.getServiceByName(
+                          promoCode.serviceName,
+                        );
+                        if (service != null && service.logoUrl.isNotEmpty) {
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(11),
                             child: CachedNetworkImage(
                               imageUrl: service.logoUrl,
-                              width: 40,
-                              height: 40,
+                              width: 48,
+                              height: 48,
                               fit: BoxFit.contain,
-                              placeholder: (context, url) => Container(
-                                color: theme.colorScheme.primaryContainer,
-                                child: Center(
-                                  child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: theme.colorScheme.primary,
-                                    ),
+                              placeholder: (context, url) => Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
                               ),
-                              errorWidget: (context, url, error) {
-                                return Container(
-                                  color: theme.colorScheme.primaryContainer,
-                                  child: Icon(
-                                    Icons.store,
-                                    color: theme.colorScheme.primary,
-                                    size: 24,
-                                  ),
-                                );
-                              },
+                              errorWidget: (context, url, error) => Icon(
+                                Icons.store,
+                                color: theme.colorScheme.primary,
+                                size: 28,
+                              ),
                             ),
-                          ),
-                        );
-                      }
-                      return Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: theme.colorScheme.primary.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Center(
+                          );
+                        }
+                        return Center(
                           child: Text(
                             promoCode.serviceName.isNotEmpty
                                 ? promoCode.serviceName[0].toUpperCase()
                                 : '?',
                             style: TextStyle(
                               color: theme.colorScheme.primary,
-                              fontSize: 18,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          promoCode.serviceName,
-                          style: AppTextStyles.h5.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                promoCode.serviceName,
+                                style: AppTextStyles.h5.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star,
+                                    size: 16,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    karma.toString(),
+                                    style: AppTextStyles.caption.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        if (promoCode.author != null)
+                        if (promoCode.author != null) ...[
+                          const SizedBox(height: 4),
                           Text(
                             'by ${promoCode.author!.displayName ?? 'Anonymous'}',
                             style: AppTextStyles.caption.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.6,
-                              ),
+                              color: theme.colorScheme.onSurface.withOpacity(0.6),
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                  // Credibility (Karma) badge on top right
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: theme.colorScheme.primary.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.star,
-                          size: 14,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          karma.toString(),
-                          style: AppTextStyles.caption.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-
-              // Promo Code
+              const SizedBox(height: 20),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 16,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primaryContainer,
+                      theme.colorScheme.primaryContainer.withOpacity(0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: theme.colorScheme.primary,
-                    width: 2,
+                    width: 2.5,
                   ),
                 ),
                 child: Center(
                   child: Text(
                     promoCode.code,
                     style: AppTextStyles.promoCode.copyWith(
-                      color: AppColors
-                          .black, // Black text for better visibility on yellow
+                      color: AppColors.black,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-
-              // Comment
-              if (promoCode.comment != null && promoCode.comment!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+              if (promoCode.comment != null && promoCode.comment!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   child: Text(
                     promoCode.comment!,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-
-              // Footer: Expiration date and vote buttons (next to each other)
+              ],
+              const SizedBox(height: 16),
               Row(
                 children: [
                   if (promoCode.expirationDate != null)
@@ -233,12 +226,12 @@ class PromoCodeCard extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.access_time,
-                            size: 16,
+                            size: 18,
                             color: isExpired
                                 ? AppColors.error
-                                : theme.colorScheme.onSurface.withOpacity(0.6),
+                                : theme.colorScheme.onSurface.withOpacity(0.7),
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           Flexible(
                             child: Text(
                               isExpired
@@ -247,9 +240,8 @@ class PromoCodeCard extends StatelessWidget {
                               style: AppTextStyles.caption.copyWith(
                                 color: isExpired
                                     ? AppColors.error
-                                    : theme.colorScheme.onSurface.withOpacity(
-                                        0.6,
-                                      ),
+                                    : theme.colorScheme.onSurface.withOpacity(0.7),
+                                fontWeight: isExpired ? FontWeight.w600 : FontWeight.normal,
                               ),
                             ),
                           ),
@@ -258,109 +250,38 @@ class PromoCodeCard extends StatelessWidget {
                     )
                   else
                     Expanded(
-                      child: Text(
-                        'No expiration',
-                        style: AppTextStyles.caption.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.all_inclusive,
+                            size: 18,
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'No expiration',
+                            style: AppTextStyles.caption.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Upvote button
-                      InkWell(
-                        onTap: onUpvote,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isUpvoted
-                                ? AppColors.upvote.withOpacity(0.2)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.arrow_upward,
-                                size: 20,
-                                color: isUpvoted
-                                    ? AppColors.upvote
-                                    : theme.colorScheme.onSurface.withOpacity(
-                                        0.6,
-                                      ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                promoCode.upvotes.toString(),
-                                style: AppTextStyles.caption.copyWith(
-                                  color: isUpvoted
-                                      ? AppColors.upvote
-                                      : theme.colorScheme.onSurface.withOpacity(
-                                          0.6,
-                                        ),
-                                  fontWeight: isUpvoted
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Downvote button
-                      InkWell(
-                        onTap: onDownvote,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDownvoted
-                                ? AppColors.downvote.withOpacity(0.2)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.arrow_downward,
-                                size: 20,
-                                color: isDownvoted
-                                    ? AppColors.downvote
-                                    : theme.colorScheme.onSurface.withOpacity(
-                                        0.6,
-                                      ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                promoCode.downvotes.toString(),
-                                style: AppTextStyles.caption.copyWith(
-                                  color: isDownvoted
-                                      ? AppColors.downvote
-                                      : theme.colorScheme.onSurface.withOpacity(
-                                          0.6,
-                                        ),
-                                  fontWeight: isDownvoted
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 12),
+                  _VoteButton(
+                    icon: Icons.arrow_upward,
+                    count: promoCode.upvotes,
+                    isActive: isUpvoted,
+                    color: AppColors.upvote,
+                    onTap: onUpvote,
+                  ),
+                  const SizedBox(width: 8),
+                  _VoteButton(
+                    icon: Icons.arrow_downward,
+                    count: promoCode.downvotes,
+                    isActive: isDownvoted,
+                    color: AppColors.downvote,
+                    onTap: onDownvote,
                   ),
                 ],
               ),
@@ -386,3 +307,64 @@ class PromoCodeCard extends StatelessWidget {
     }
   }
 }
+
+class _VoteButton extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final bool isActive;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _VoteButton({
+    required this.icon,
+    required this.count,
+    required this.isActive,
+    required this.color,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: isActive ? color.withOpacity(0.15) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: isActive
+                ? Border.all(color: color.withOpacity(0.3), width: 1.5)
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isActive
+                    ? color
+                    : theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                count.toString(),
+                style: AppTextStyles.caption.copyWith(
+                  color: isActive
+                      ? color
+                      : theme.colorScheme.onSurface.withOpacity(0.6),
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

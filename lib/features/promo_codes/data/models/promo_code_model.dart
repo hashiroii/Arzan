@@ -21,6 +21,12 @@ class PromoCodeModel extends PromoCode {
 
   factory PromoCodeModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    final upvotedBy = List<String>.from(data['upvotedBy'] as List? ?? []);
+    final downvotedBy = List<String>.from(data['downvotedBy'] as List? ?? []);
+    
+    final upvotes = (data['upvotes'] as int?) ?? 0;
+    final downvotes = (data['downvotes'] as int?) ?? 0;
+    
     return PromoCodeModel(
       id: doc.id,
       code: data['code'] as String,
@@ -31,10 +37,10 @@ class PromoCodeModel extends PromoCode {
       expirationDate: data['expirationDate'] != null
           ? (data['expirationDate'] as Timestamp).toDate()
           : null,
-      upvotes: (data['upvotes'] as int?) ?? 0,
-      downvotes: (data['downvotes'] as int?) ?? 0,
-      upvotedBy: List<String>.from(data['upvotedBy'] as List? ?? []),
-      downvotedBy: List<String>.from(data['downvotedBy'] as List? ?? []),
+      upvotes: upvotes.clamp(0, double.infinity).toInt(),
+      downvotes: downvotes.clamp(0, double.infinity).toInt(),
+      upvotedBy: upvotedBy,
+      downvotedBy: downvotedBy,
       isActive: (data['isActive'] as bool?) ?? true,
     );
   }

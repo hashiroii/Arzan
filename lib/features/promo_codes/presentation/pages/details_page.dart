@@ -70,22 +70,27 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
     int newUpvotes = _promoCode!.upvotes;
     int newDownvotes = _promoCode!.downvotes;
 
-    if (newUpvotedBy.contains(currentUser.id)) {
-      newUpvotedBy.remove(currentUser.id);
-      newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
-    }
-    if (newDownvotedBy.contains(currentUser.id)) {
-      newDownvotedBy.remove(currentUser.id);
-      newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
-    }
-
     if (isUpvote) {
-      if (!wasUpvoted) {
+      if (wasUpvoted) {
+        newUpvotedBy.remove(currentUser.id);
+        newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
+      } else {
+        if (wasDownvoted) {
+          newDownvotedBy.remove(currentUser.id);
+          newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
+        }
         newUpvotedBy.add(currentUser.id);
         newUpvotes = newUpvotes + 1;
       }
     } else {
-      if (!wasDownvoted) {
+      if (wasDownvoted) {
+        newDownvotedBy.remove(currentUser.id);
+        newDownvotes = (newDownvotes - 1).clamp(0, double.infinity).toInt();
+      } else {
+        if (wasUpvoted) {
+          newUpvotedBy.remove(currentUser.id);
+          newUpvotes = (newUpvotes - 1).clamp(0, double.infinity).toInt();
+        }
         newDownvotedBy.add(currentUser.id);
         newDownvotes = newDownvotes + 1;
       }
@@ -93,8 +98,8 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
 
     setState(() {
       _promoCode = _promoCode!.copyWith(
-        upvotes: newUpvotes,
-        downvotes: newDownvotes,
+        upvotes: newUpvotes.clamp(0, double.infinity).toInt(),
+        downvotes: newDownvotes.clamp(0, double.infinity).toInt(),
         upvotedBy: newUpvotedBy,
         downvotedBy: newDownvotedBy,
       );
@@ -221,8 +226,12 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
 
     final promoCode = _promoCode!;
     final isExpired = promoCode.isExpired;
-    final isUpvoted = currentUser != null && promoCode.upvotedBy.contains(currentUser.id);
-    final isDownvoted = currentUser != null && promoCode.downvotedBy.contains(currentUser.id);
+    final isUpvoted = currentUser != null && 
+        promoCode.upvotedBy.contains(currentUser.id) &&
+        !promoCode.downvotedBy.contains(currentUser.id);
+    final isDownvoted = currentUser != null && 
+        promoCode.downvotedBy.contains(currentUser.id) &&
+        !promoCode.upvotedBy.contains(currentUser.id);
 
     final isOwner = currentUser != null && promoCode.authorId == currentUser.id;
 
