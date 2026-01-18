@@ -96,5 +96,8 @@
   "alphabetical": "Alphabetical",
   "most_upvoted": "Most Upvoted",
   "all_services": "All Services",
-  "service": "Service"
+  "service": "Service",
+  "expires": "Expires",
+  "days_left": "d left",
+  "hours_left": "h left"
 }

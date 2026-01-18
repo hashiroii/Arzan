@@ -69,16 +69,23 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
       (promoCodes) {
         if (promoCodes.isEmpty) {
           hasMore = false;
+          if (refresh) {
+            state = const AsyncValue.data([]);
+          }
         } else {
           final sortedPromoCodes = _sortWithExpiredAtEnd(promoCodes);
           lastDocumentId = sortedPromoCodes.last.id;
-          final currentList = state.value ?? [];
-          final sortedCurrentList = currentList.isEmpty 
-              ? [] 
-              : _sortWithExpiredAtEnd(currentList);
-          state = AsyncValue.data(
-            refresh ? sortedPromoCodes : [...sortedCurrentList, ...sortedPromoCodes],
-          );
+          if (refresh) {
+            state = AsyncValue.data(sortedPromoCodes);
+          } else {
+            final currentList = state.value ?? [];
+            final existingIds = currentList.map((e) => e.id).toSet();
+            final newPromoCodes = sortedPromoCodes.where((code) => !existingIds.contains(code.id)).toList();
+            if (newPromoCodes.isNotEmpty) {
+              final sortedCurrentList = _sortWithExpiredAtEnd(currentList);
+              state = AsyncValue.data([...sortedCurrentList, ...newPromoCodes]);
+            }
+          }
         }
       },
     );

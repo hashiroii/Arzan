@@ -115,6 +115,9 @@ class Translations {
   static String get mostUpvoted => translate('most_upvoted');
   static String get allServices => translate('all_services');
   static String get service => translate('service');
+  static String get expires => translate('expires');
+  static String daysLeft(int days) => '$days ${translate('days_left')}';
+  static String hoursLeft(int hours) => '$hours ${translate('hours_left')}';
 }
 
 final translationsProvider = FutureProvider<void>((ref) async {

@@ -13,6 +13,7 @@ import '../providers/promo_code_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
 import '../../../user/domain/repositories/user_repository.dart';
+import '../../../user/domain/usecases/get_user_by_id.dart';
 
 class DetailsPage extends ConsumerStatefulWidget {
   final String promoCodeId;
@@ -211,11 +212,15 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
           },
           (_) async {
             if (mounted) {
+              ref.invalidate(authStateProvider);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(Translations.userBlockedSuccess)),
               );
+              await Future.delayed(const Duration(milliseconds: 500));
               ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
-              Navigator.pop(context);
+              if (mounted) {
+                Navigator.pop(context);
+              }
             }
           },
         );
@@ -317,6 +322,32 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.star,
+                    color: theme.colorScheme.primary,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${Translations.karma}: ${promoCode.karma}',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
             Text(
               promoCode.serviceName,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -412,11 +443,13 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                                     ),
                                     if (currentUser != null && 
                                         promoCode.authorId != currentUser.id)
-                                      IconButton(
-                                        icon: const Icon(Icons.block),
+                                      TextButton.icon(
+                                        icon: const Icon(Icons.block, size: 18),
+                                        label: Text(Translations.block),
                                         onPressed: () => _blockUser(context),
-                                        tooltip: Translations.blockUser,
-                                        color: AppColors.error,
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: AppColors.error,
+                                        ),
                                       ),
                                   ],
                                 ),
@@ -474,7 +507,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                     if (promoCode.expirationDate != null) ...[
                       const SizedBox(height: 16),
                       _DetailRow(
-                        icon: Icons.access_time,
+                        icon: isExpired ? Icons.cancel_outlined : Icons.access_time,
                         label: Translations.expires,
                         value: _formatDate(promoCode.expirationDate!),
                         isExpired: isExpired,

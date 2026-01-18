@@ -177,9 +177,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             );
           },
           (_) async {
+            ref.invalidate(authStateProvider);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(Translations.userUnblockedSuccess)),
             );
+            await Future.delayed(const Duration(milliseconds: 500));
             ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
             setState(() {});
           },
@@ -404,10 +406,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 ),
                                 title: Text(user['displayName'] ?? Translations.anonymous),
                                 subtitle: Text(user['email'] ?? ''),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.block),
+                                trailing: TextButton.icon(
+                                  icon: const Icon(Icons.block, size: 18),
+                                  label: Text(Translations.unblock),
                                   onPressed: () => _unblockUser(context, user['id']),
-                                  tooltip: Translations.unblockUser,
                                 ),
                               );
                             }).toList(),

@@ -96,5 +96,8 @@
   "alphabetical": "По алфавиту",
   "most_upvoted": "Самые популярные",
   "all_services": "Все сервисы",
-  "service": "Сервис"
+  "service": "Сервис",
+  "expires": "Истекает",
+  "days_left": "д осталось",
+  "hours_left": "ч осталось"
 }
