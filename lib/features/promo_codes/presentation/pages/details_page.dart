@@ -13,7 +13,6 @@ import '../providers/promo_code_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
 import '../../../user/domain/repositories/user_repository.dart';
-import '../../../user/domain/usecases/get_user_by_id.dart';
 
 class DetailsPage extends ConsumerStatefulWidget {
   final String promoCodeId;
