@@ -54,7 +54,6 @@ class PromoCodeRepositoryImpl implements PromoCodeRepository {
               isActive: model.isActive,
             );
           } catch (e) {
-            // If author fetch fails, return model without author
             return model;
           }
         }),
@@ -262,7 +261,6 @@ class PromoCodeRepositoryImpl implements PromoCodeRepository {
               isActive: model.isActive,
             );
           } catch (e) {
-            // If author fetch fails, return model without author
             return model;
           }
         }),

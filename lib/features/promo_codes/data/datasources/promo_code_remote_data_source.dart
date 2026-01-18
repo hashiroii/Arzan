@@ -254,7 +254,6 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
   Future<List<PromoCodeModel>> getUserPromoCodes(String userId) async {
     try {
       // Fetch without orderBy to avoid requiring composite index
-      // We'll sort in memory instead
       final snapshot = await firestore
           .collection('promoCodes')
           .where('authorId', isEqualTo: userId)
