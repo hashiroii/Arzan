@@ -12,6 +12,7 @@ import '../../domain/usecases/vote_promo_code.dart';
 import '../providers/promo_code_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
+import '../../../user/domain/repositories/user_repository.dart';
 
 class DetailsPage extends ConsumerStatefulWidget {
   final String promoCodeId;
@@ -136,7 +137,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
         isUpvote,
       );
       
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) {
           _loadPromoCode().catchError((e) {
             AppLogger.error('Background refresh error', e, null, 'Details');
@@ -162,6 +163,57 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
       Share.share(
         'Check out this promo code for ${_promoCode!.serviceName}: ${_promoCode!.code}',
       );
+    }
+  }
+
+  Future<void> _blockUser(BuildContext context) async {
+    if (_promoCode?.author == null) return;
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Block User'),
+        content: Text(
+          'Are you sure you want to block ${_promoCode!.author!.displayName ?? 'this user'}? You will not see their promo codes anymore.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.error,
+            ),
+            child: const Text('Block'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && _promoCode?.author != null) {
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser == null) return;
+
+      try {
+        await DependencyInjection.userRepository.blockUser(
+          currentUser.id,
+          _promoCode!.authorId,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User blocked successfully')),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to block user: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -259,7 +311,6 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
             Text(
               promoCode.serviceName,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
             ),
@@ -305,88 +356,98 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                     );
                   },
                   tooltip: 'Copy promo code',
-                  color: theme.colorScheme.primary,
                   style: IconButton.styleFrom(
                     padding: const EdgeInsets.all(12),
-                    backgroundColor: theme.colorScheme.primaryContainer,
+                    backgroundColor: theme.colorScheme.surfaceVariant,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
 
-            // Author info with photo and name
+            // Author info with photo, name, and comment merged
             if (promoCode.author != null)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundImage: promoCode.author!.photoUrl != null
-                            ? NetworkImage(promoCode.author!.photoUrl!)
-                            : null,
-                        backgroundColor: theme.colorScheme.primary,
-                        child: promoCode.author!.photoUrl == null
-                            ? Text(
-                                promoCode.author!.displayName?[0].toUpperCase() ?? 'U',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      color: AppColors.black,
-                                    ),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              promoCode.author!.displayName ?? 'Anonymous',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.star,
-                                  size: 16,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Credibility: ${promoCode.author!.karma}',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            const SizedBox(height: 24),
-
-            // Comment
-            if (promoCode.comment != null && promoCode.comment!.isNotEmpty)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Comment',
-                        style: Theme.of(context).textTheme.titleSmall,
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundImage: promoCode.author!.photoUrl != null
+                                ? NetworkImage(promoCode.author!.photoUrl!)
+                                : null,
+                            backgroundColor: theme.colorScheme.primary,
+                            child: promoCode.author!.photoUrl == null
+                                ? Text(
+                                    promoCode.author!.displayName?[0].toUpperCase() ?? 'U',
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                          color: AppColors.black,
+                                        ),
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        promoCode.author!.displayName ?? 'Anonymous',
+                                        style: Theme.of(context).textTheme.titleLarge,
+                                      ),
+                                    ),
+                                    if (currentUser != null && 
+                                        !isOwner && 
+                                        promoCode.authorId != currentUser.id)
+                                      IconButton(
+                                        icon: const Icon(Icons.block),
+                                        onPressed: () => _blockUser(context),
+                                        tooltip: 'Block user',
+                                        color: AppColors.error,
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.star,
+                                      size: 16,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Credibility: ${promoCode.author!.karma}',
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        promoCode.comment!,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
+                      if (promoCode.comment != null && promoCode.comment!.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Comment',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          promoCode.comment!,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -405,7 +466,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                       value: _formatDate(promoCode.publishDate),
                     ),
                     if (promoCode.expirationDate != null) ...[
-                      const Divider(),
+                      const SizedBox(height: 16),
                       _DetailRow(
                         icon: Icons.access_time,
                         label: 'Expires',
@@ -413,13 +474,15 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                         isExpired: isExpired,
                       ),
                     ],
-                    const Divider(),
-                    _DetailRow(
-                      icon: Icons.check_circle,
-                      label: 'Status',
-                      value: isExpired ? 'Expired' : 'Active',
-                      isExpired: isExpired,
-                    ),
+                    if (!isExpired) ...[
+                      const SizedBox(height: 16),
+                      _DetailRow(
+                        icon: Icons.check_circle,
+                        label: 'Status',
+                        value: 'Active',
+                        isExpired: false,
+                      ),
+                    ],
                   ],
                 ),
               ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/promo_code_card.dart';
-import '../../../../core/utils/logger.dart';
 import '../../domain/entities/user.dart';
 import '../providers/user_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
@@ -12,7 +11,7 @@ import '../../../promo_codes/domain/entities/promo_code.dart';
 import '../../../promo_codes/data/repositories/promo_code_repository_impl.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
-  final String? userId; // If null, shows current user's profile
+  final String? userId;
 
   const ProfilePage({super.key, this.userId});
 
@@ -61,7 +60,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     final targetUserId = widget.userId ?? ref.read(currentUserProvider)?.id;
     if (targetUserId == null) {
-      AppLogger.warning('No user ID available', 'Profile');
+      print('🔴 Profile: No user ID available');
       setState(() {
         _isLoading = false;
         _user = null;
@@ -69,6 +68,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       });
       return;
     }
+
+    print('🔵 Profile: Loading data for user ID: $targetUserId');
 
     try {
       final getUserUseCase = ref.read(getUserByIdProvider);
@@ -81,14 +82,20 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         await promoCodeRepo.recalculateUserKarma(targetUserId);
       }
 
+      // Load user after recalculating karma
       final userResult = await getUserUseCase(targetUserId);
 
+      // Handle user result
       userResult.fold(
         (failure) {
-          AppLogger.error('Error loading user', failure, null, 'Profile');
+          print('🔴 Profile: Error loading user: ${failure.message}');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: ${failure.message ?? "Failed to load user"}')),
+              SnackBar(
+                content: Text(
+                  'Error: ${failure.message ?? "Failed to load user"}',
+                ),
+              ),
             );
           }
           setState(() {
@@ -96,6 +103,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           });
         },
         (user) {
+          print('✅ Profile: User loaded successfully');
+          print('   - ID: ${user.id}');
+          print('   - Email: ${user.email}');
+          print('   - Display Name: ${user.displayName ?? "null"}');
+          print('   - Karma: ${user.karma}');
+          print('   - Photo URL: ${user.photoUrl ?? "null"}');
           if (mounted) {
             setState(() {
               _user = user;
@@ -104,9 +117,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         },
       );
 
+      // Handle promo codes result
       codesResult.fold(
         (failure) {
-          AppLogger.error('Error loading promo codes', failure, null, 'Profile');
+          print('🔴 Profile: Error loading promo codes: ${failure.message}');
           if (mounted) {
             setState(() {
               _userPromoCodes = [];
@@ -114,6 +128,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           }
         },
         (codes) {
+          print('✅ Profile: Loaded ${codes.length} promo codes');
+          for (var code in codes) {
+            print(
+              '   - Code: ${code.code}, Service: ${code.serviceName}, Author ID: ${code.authorId}',
+            );
+          }
           if (mounted) {
             setState(() {
               _userPromoCodes = codes;
@@ -122,11 +142,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         },
       );
     } catch (e) {
-      AppLogger.error('Unexpected error', e, null, 'Profile');
+      print('🔴 Profile: Unexpected error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unexpected error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Unexpected error: $e')));
       }
     } finally {
       if (mounted) {
@@ -177,12 +197,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   (failure) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Error: ${failure.message ?? "Failed to sign out"}'),
+                        content: Text(
+                          'Error: ${failure.message ?? "Failed to sign out"}',
+                        ),
                         backgroundColor: AppColors.error,
                       ),
                     );
                   },
                   (_) {
+                    // Success - auth state will update automatically
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },
                 );
@@ -226,6 +249,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   const SizedBox(height: 8),
 
+                  // Email
                   Text(
                     _user!.email,
                     style: Theme.of(context).textTheme.bodyMedium,
@@ -308,11 +332,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                   DetailsPage(promoCodeId: code.id),
                             ),
                           );
+                          // Refresh profile data when returning from details
                           if (mounted) {
                             _refreshData();
                           }
                         },
-                        onUpvote: null,
+                        onUpvote:
+                            null, // Disable voting on own codes in profile
                         onDownvote: null,
                       ),
                     ),

@@ -1,7 +1,7 @@
 class Service {
   final String id;
   final String name;
-  final String logoUrl;
+  final String logoUrl; // For now, we'll use a placeholder or asset path
   final List<String> aliases;
 
   const Service({
@@ -19,37 +19,43 @@ class ServicesData {
     Service(
       id: 'dodo_pizza',
       name: 'Dodo Pizza',
-      logoUrl: '',
+      logoUrl: '', // Will use icon fallback
       aliases: ['dodo', 'pizza dodo', 'додо пицца', 'dodo pizza'],
     ),
     Service(
       id: 'airba_fresh',
       name: 'Airba Fresh',
-      logoUrl: '',
+      logoUrl: '', // Will use icon fallback
       aliases: ['airba', 'fresh', 'эйрба фреш', 'airba fresh'],
     ),
     Service(
       id: 'arbuz',
       name: 'Arbuz',
-      logoUrl: '',
+      logoUrl: '', // Will use icon fallback
       aliases: ['арбуз', 'arbuz'],
     ),
     Service(
       id: 'yandex_go',
       name: 'Yandex Go',
-      logoUrl: '',
-      aliases: ['yandex', 'яндекс го', 'яндекс такси', 'yandex go', 'yandex taxi'],
+      logoUrl: '', // Will use icon fallback
+      aliases: [
+        'yandex',
+        'яндекс го',
+        'яндекс такси',
+        'yandex go',
+        'yandex taxi',
+      ],
     ),
     Service(
       id: 'chocofood',
       name: 'Chocofood',
-      logoUrl: '',
+      logoUrl: '', // Will use icon fallback
       aliases: ['choco', 'чокофуд', 'chocofood'],
     ),
     Service(
       id: 'fix_price',
       name: 'Fix Price',
-      logoUrl: '',
+      logoUrl: '', // Will use icon fallback
       aliases: ['fixprice', 'фикс прайс', 'фикспрайс', 'fix price'],
     ),
   ];
@@ -60,42 +66,40 @@ class ServicesData {
 
     final lowerQuery = query.toLowerCase().trim();
     return services.where((service) {
-      // Check if query matches service name
       if (service.name.toLowerCase().contains(lowerQuery)) {
         return true;
       }
-      // Check if query matches any alias
-      if (service.aliases.any((alias) => alias.toLowerCase().contains(lowerQuery))) {
+      if (service.aliases.any(
+        (alias) => alias.toLowerCase().contains(lowerQuery),
+      )) {
         return true;
       }
-      // Check if any word in query matches
       final queryWords = lowerQuery.split(' ');
-      return queryWords.any((word) =>
-          service.name.toLowerCase().contains(word) ||
-          service.aliases.any((alias) => alias.toLowerCase().contains(word)));
+      return queryWords.any(
+        (word) =>
+            service.name.toLowerCase().contains(word) ||
+            service.aliases.any((alias) => alias.toLowerCase().contains(word)),
+      );
     }).toList();
   }
 
   static Service? getServiceByName(String name) {
     if (name.isEmpty) return null;
     final lowerName = name.toLowerCase().trim();
-    
-    // Try exact match first
+
     for (final service in services) {
       if (service.name.toLowerCase() == lowerName) {
         return service;
       }
     }
-    
-    // Try partial match
+
     for (final service in services) {
       if (service.name.toLowerCase().contains(lowerName) ||
           lowerName.contains(service.name.toLowerCase())) {
         return service;
       }
     }
-    
-    // Try alias match
+
     for (final service in services) {
       for (final alias in service.aliases) {
         if (alias.toLowerCase() == lowerName ||
@@ -105,7 +109,7 @@ class ServicesData {
         }
       }
     }
-    
+
     return null;
   }
 

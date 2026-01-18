@@ -9,4 +9,6 @@ abstract class UserRepository {
   Future<Either<Failure, void>> deleteUser(String userId);
   Future<Either<Failure, void>> updateUserKarma(String userId, int karmaChange);
   Future<Either<Failure, void>> recalculateUserKarma(String userId);
+  Future<Either<Failure, void>> blockUser(String currentUserId, String userIdToBlock);
+  Future<Either<Failure, void>> unblockUser(String currentUserId, String userIdToUnblock);
 }

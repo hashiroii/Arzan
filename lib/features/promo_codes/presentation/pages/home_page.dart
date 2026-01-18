@@ -160,7 +160,12 @@ class _HomePageState extends ConsumerState<HomePage> {
             // Promo codes list
             promoCodesAsync.when(
               data: (promoCodes) {
-                if (promoCodes.isEmpty) {
+                final blockedUserIds = currentUser?.blockedUsers ?? [];
+                final filteredPromoCodes = promoCodes.where(
+                  (code) => !blockedUserIds.contains(code.authorId),
+                ).toList();
+                
+                if (filteredPromoCodes.isEmpty) {
                   return SliverFillRemaining(
                     child: Center(
                       child: Column(
@@ -186,7 +191,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
                 return SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
-                    final promoCode = promoCodes[index];
+                    final promoCode = filteredPromoCodes[index];
                     return PromoCodeCard(
                       promoCode: promoCode,
                       currentUserId: currentUser?.id,
@@ -206,7 +211,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         _handleVote(promoCode.id, false);
                       },
                     );
-                  }, childCount: promoCodes.length),
+                  }, childCount: filteredPromoCodes.length),
                 );
               },
               loading: () => const SliverFillRemaining(

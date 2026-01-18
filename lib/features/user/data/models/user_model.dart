@@ -10,6 +10,7 @@ class UserModel extends User {
     super.karma = 0,
     required super.createdAt,
     super.lastActiveAt,
+    super.blockedUsers = const [],
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -24,6 +25,7 @@ class UserModel extends User {
       lastActiveAt: data['lastActiveAt'] != null
           ? (data['lastActiveAt'] as Timestamp).toDate()
           : null,
+      blockedUsers: List<String>.from(data['blockedUsers'] as List? ?? []),
     );
   }
 
@@ -36,6 +38,7 @@ class UserModel extends User {
       karma: user.karma,
       createdAt: user.createdAt,
       lastActiveAt: user.lastActiveAt,
+      blockedUsers: user.blockedUsers,
     );
   }
 
@@ -47,6 +50,7 @@ class UserModel extends User {
       'karma': karma,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastActiveAt': lastActiveAt != null ? Timestamp.fromDate(lastActiveAt!) : null,
+      'blockedUsers': blockedUsers,
     };
   }
 
@@ -59,6 +63,7 @@ class UserModel extends User {
       karma: karma,
       createdAt: createdAt,
       lastActiveAt: lastActiveAt,
+      blockedUsers: blockedUsers,
     );
   }
 }

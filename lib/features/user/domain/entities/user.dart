@@ -8,6 +8,7 @@ class User extends Equatable {
   final int karma;
   final DateTime createdAt;
   final DateTime? lastActiveAt;
+  final List<String> blockedUsers;
 
   const User({
     required this.id,
@@ -17,6 +18,7 @@ class User extends Equatable {
     this.karma = 0,
     required this.createdAt,
     this.lastActiveAt,
+    this.blockedUsers = const [],
   });
 
   User copyWith({
@@ -27,6 +29,7 @@ class User extends Equatable {
     int? karma,
     DateTime? createdAt,
     DateTime? lastActiveAt,
+    List<String>? blockedUsers,
   }) {
     return User(
       id: id ?? this.id,
@@ -36,6 +39,7 @@ class User extends Equatable {
       karma: karma ?? this.karma,
       createdAt: createdAt ?? this.createdAt,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
+      blockedUsers: blockedUsers ?? this.blockedUsers,
     );
   }
 
@@ -48,5 +52,6 @@ class User extends Equatable {
         karma,
         createdAt,
         lastActiveAt,
+        blockedUsers,
       ];
 }

@@ -9,6 +9,8 @@ abstract class UserRemoteDataSource {
   Future<void> deleteUser(String userId);
   Future<void> updateUserKarma(String userId, int karmaChange);
   Future<void> recalculateUserKarma(String userId, int totalKarma);
+  Future<void> blockUser(String currentUserId, String userIdToBlock);
+  Future<void> unblockUser(String currentUserId, String userIdToUnblock);
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -70,6 +72,28 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     try {
       await firestore.collection('users').doc(userId).update({
         'karma': totalKarma,
+      });
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
+  }
+
+  @override
+  Future<void> blockUser(String currentUserId, String userIdToBlock) async {
+    try {
+      await firestore.collection('users').doc(currentUserId).update({
+        'blockedUsers': FieldValue.arrayUnion([userIdToBlock]),
+      });
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
+  }
+
+  @override
+  Future<void> unblockUser(String currentUserId, String userIdToUnblock) async {
+    try {
+      await firestore.collection('users').doc(currentUserId).update({
+        'blockedUsers': FieldValue.arrayRemove([userIdToUnblock]),
       });
     } catch (e) {
       throw ServerFailure(e.toString());

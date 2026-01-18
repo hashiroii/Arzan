@@ -121,6 +121,72 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
+  Future<List<Map<String, dynamic>>> _loadBlockedUsers(List<String> userIds) async {
+    final userRepo = DependencyInjection.userRepository;
+    final users = <Map<String, dynamic>>[];
+    
+    for (final userId in userIds) {
+      final result = await userRepo.getUserById(userId);
+      result.fold(
+        (failure) => null,
+        (user) {
+          users.add({
+            'id': user.id,
+            'displayName': user.displayName,
+            'email': user.email,
+            'photoUrl': user.photoUrl,
+          });
+        },
+      );
+    }
+    
+    return users;
+  }
+
+  Future<void> _unblockUser(BuildContext context, String userId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unblock User'),
+        content: const Text('Are you sure you want to unblock this user?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Unblock'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser != null) {
+        final userRepo = DependencyInjection.userRepository;
+        final result = await userRepo.unblockUser(currentUser.id, userId);
+        result.fold(
+          (failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: ${failure.message ?? "Failed to unblock user"}'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          },
+          (_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('User unblocked successfully')),
+            );
+            setState(() {}); // Refresh the UI
+          },
+        );
+      }
+    }
+  }
+
   Future<void> _deleteAccount() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -282,6 +348,75 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     (_) {
                       // Success - auth state will update automatically
                     },
+                  );
+                },
+              ),
+              Consumer(
+                builder: (context, ref, child) {
+                  final currentUser = ref.watch(currentUserProvider);
+                  final blockedUserIds = currentUser?.blockedUsers ?? [];
+                  
+                  if (blockedUserIds.isEmpty) {
+                    return ListTile(
+                      leading: const Icon(Icons.block),
+                      title: const Text('Blocked Users'),
+                      subtitle: const Text('No blocked users'),
+                      enabled: false,
+                    );
+                  }
+                  
+                  return ExpansionTile(
+                    leading: const Icon(Icons.block),
+                    title: const Text('Blocked Users'),
+                    subtitle: Text('${blockedUserIds.length} user(s) blocked'),
+                    children: FutureBuilder<List<Map<String, dynamic>>>(
+                      future: _loadBlockedUsers(blockedUserIds),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        
+                        if (snapshot.hasError || !snapshot.hasData) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text('Failed to load blocked users'),
+                          );
+                        }
+                        
+                        final blockedUsers = snapshot.data!;
+                        if (blockedUsers.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text('No blocked users'),
+                          );
+                        }
+                        
+                        return Column(
+                          children: blockedUsers.map((user) {
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: user['photoUrl'] != null
+                                    ? NetworkImage(user['photoUrl'])
+                                    : null,
+                                child: user['photoUrl'] == null
+                                    ? Text(user['displayName']?[0] ?? 'U')
+                                    : null,
+                              ),
+                              title: Text(user['displayName'] ?? 'Anonymous'),
+                              subtitle: Text(user['email'] ?? ''),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.unblock),
+                                onPressed: () => _unblockUser(context, user['id']),
+                                tooltip: 'Unblock user',
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                   );
                 },
               ),
