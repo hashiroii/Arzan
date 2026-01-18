@@ -4,6 +4,7 @@ import '../../domain/entities/promo_code.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/promo_code_provider.dart';
 import '../../../../core/data/services_data.dart';
+import '../../../../core/utils/translations.dart';
 
 class PostPage extends ConsumerStatefulWidget {
   const PostPage({super.key});
@@ -60,7 +61,7 @@ class _PostPageState extends ConsumerState<PostPage> {
     if (currentUser == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please sign in to post')));
+      ).showSnackBar(SnackBar(content: Text(Translations.pleaseSignInToPost)));
       return;
     }
 
@@ -70,7 +71,7 @@ class _PostPageState extends ConsumerState<PostPage> {
 
     if (_selectedService == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a service')),
+        SnackBar(content: Text(Translations.pleaseSelectService)),
       );
       setState(() {
         _isSubmitting = false;
@@ -98,7 +99,7 @@ class _PostPageState extends ConsumerState<PostPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Error: ${failure.message ?? 'Failed to create promo code'}',
+              '${Translations.error}: ${failure.message ?? Translations.failedToCreatePromoCode}',
             ),
           ),
         );
@@ -108,7 +109,7 @@ class _PostPageState extends ConsumerState<PostPage> {
       },
       (created) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Promo code posted successfully!')),
+          SnackBar(content: Text(Translations.promoCodePostedSuccess)),
         );
         ref
             .read(promoCodesNotifierProvider.notifier)
@@ -121,7 +122,7 @@ class _PostPageState extends ConsumerState<PostPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Post Promo Code')),
+      appBar: AppBar(title: Text(Translations.postPromoCode)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -151,8 +152,8 @@ class _PostPageState extends ConsumerState<PostPage> {
                     controller: textEditingController,
                     focusNode: focusNode,
                     decoration: InputDecoration(
-                      labelText: 'Service *',
-                      hintText: 'Search for a service...',
+                      labelText: '${Translations.serviceName} *',
+                      hintText: Translations.searchService,
                       prefixIcon: const Icon(Icons.store),
                       suffixIcon: _selectedService != null
                           ? IconButton(
@@ -168,7 +169,7 @@ class _PostPageState extends ConsumerState<PostPage> {
                     ),
                     validator: (value) {
                       if (_selectedService == null) {
-                        return 'Please select a service';
+                        return Translations.pleaseSelectService;
                       }
                       return null;
                     },
@@ -229,7 +230,7 @@ class _PostPageState extends ConsumerState<PostPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Chip(
-                    label: Text('Selected: $_selectedService'),
+                    label: Text('${Translations.selected}: $_selectedService'),
                     avatar: const Icon(Icons.check_circle, size: 18),
                     onDeleted: () {
                       setState(() {
@@ -244,14 +245,14 @@ class _PostPageState extends ConsumerState<PostPage> {
               TextFormField(
                 controller: _codeController,
                 decoration: const InputDecoration(
-                  labelText: 'Promo Code *',
-                  hintText: 'Enter the promo code',
+                  labelText: '${Translations.promoCode} *',
+                  hintText: Translations.enterPromoCode,
                   prefixIcon: Icon(Icons.confirmation_number),
                 ),
                 textCapitalization: TextCapitalization.characters,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter promo code';
+                    return Translations.pleaseEnterPromoCode;
                   }
                   return null;
                 },
@@ -262,8 +263,8 @@ class _PostPageState extends ConsumerState<PostPage> {
               TextFormField(
                 controller: _commentController,
                 decoration: const InputDecoration(
-                  labelText: 'Comment (Optional)',
-                  hintText: 'Add any additional information',
+                  labelText: '${Translations.comment} (${Translations.optional})',
+                  hintText: Translations.addComment,
                   prefixIcon: Icon(Icons.comment),
                 ),
                 maxLines: 3,
@@ -275,12 +276,12 @@ class _PostPageState extends ConsumerState<PostPage> {
                 onTap: _selectExpirationDate,
                 child: InputDecorator(
                   decoration: const InputDecoration(
-                    labelText: 'Expiration Date (Optional)',
+                    labelText: '${Translations.expirationDate} (${Translations.optional})',
                     prefixIcon: Icon(Icons.calendar_today),
                   ),
                   child: Text(
                     _expirationDate == null
-                        ? 'Select expiration date'
+                        ? Translations.selectExpirationDate
                         : '${_expirationDate!.day}/${_expirationDate!.month}/${_expirationDate!.year} ${_expirationDate!.hour}:${_expirationDate!.minute.toString().padLeft(2, '0')}',
                   ),
                 ),
@@ -295,7 +296,7 @@ class _PostPageState extends ConsumerState<PostPage> {
                       });
                     },
                     icon: const Icon(Icons.clear),
-                    label: const Text('Clear expiration date'),
+                    label: Text(Translations.clearExpirationDate),
                   ),
                 ),
               const SizedBox(height: 32),
@@ -312,7 +313,7 @@ class _PostPageState extends ConsumerState<PostPage> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Post Promo Code'),
+                    : Text(Translations.post),
               ),
             ],
           ),

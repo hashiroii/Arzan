@@ -180,7 +180,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No promo codes found',
+                            Translations.noPromoCodes,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                         ],

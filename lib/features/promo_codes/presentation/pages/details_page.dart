@@ -197,16 +197,28 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
       if (currentUser == null) return;
 
       try {
-        await DependencyInjection.userRepository.blockUser(
+        final result = await DependencyInjection.userRepository.blockUser(
           currentUser.id,
           _promoCode!.authorId,
         );
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(Translations.userBlockedSuccess)),
-          );
-          Navigator.pop(context);
-        }
+        result.fold(
+          (failure) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${Translations.failedToBlockUser}: ${failure.message}')),
+              );
+            }
+          },
+          (_) async {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(Translations.userBlockedSuccess)),
+              );
+              ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
+              Navigator.pop(context);
+            }
+          },
+        );
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

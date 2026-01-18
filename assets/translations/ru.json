@@ -83,5 +83,11 @@
   "refresh": "Обновить",
   "user_not_found": "Пользователь не найден",
   "credibility": "Доверие",
-  "by": "от"
+  "by": "от",
+  "search_service": "Поиск сервиса...",
+  "enter_promo_code": "Введите промокод",
+  "please_enter_promo_code": "Пожалуйста, введите промокод",
+  "optional": "Необязательно",
+  "add_comment": "Добавьте дополнительную информацию",
+  "failed_to_create_promo_code": "Не удалось создать промокод"
 }

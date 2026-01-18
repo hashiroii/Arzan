@@ -102,6 +102,12 @@ class Translations {
   static String get userNotFound => translate('user_not_found');
   static String get credibility => translate('credibility');
   static String get by => translate('by');
+  static String get searchService => translate('search_service');
+  static String get enterPromoCode => translate('enter_promo_code');
+  static String get pleaseEnterPromoCode => translate('please_enter_promo_code');
+  static String get optional => translate('optional');
+  static String get addComment => translate('add_comment');
+  static String get failedToCreatePromoCode => translate('failed_to_create_promo_code');
 }
 
 final translationsProvider = FutureProvider<void>((ref) async {

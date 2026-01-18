@@ -83,5 +83,11 @@
   "refresh": "Refresh",
   "user_not_found": "User not found",
   "credibility": "Credibility",
-  "by": "by"
+  "by": "by",
+  "search_service": "Search for a service...",
+  "enter_promo_code": "Enter the promo code",
+  "please_enter_promo_code": "Please enter promo code",
+  "optional": "Optional",
+  "add_comment": "Add any additional information",
+  "failed_to_create_promo_code": "Failed to create promo code"
 }
