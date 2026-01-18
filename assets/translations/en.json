@@ -89,5 +89,12 @@
   "please_enter_promo_code": "Please enter promo code",
   "optional": "Optional",
   "add_comment": "Add any additional information",
-  "failed_to_create_promo_code": "Failed to create promo code"
+  "failed_to_create_promo_code": "Failed to create promo code",
+  "most_recent": "Most Recent",
+  "publish_time": "Publish Time",
+  "expiration_date_sort": "Expiration Date",
+  "alphabetical": "Alphabetical",
+  "most_upvoted": "Most Upvoted",
+  "all_services": "All Services",
+  "service": "Service"
 }

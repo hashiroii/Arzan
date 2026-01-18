@@ -108,6 +108,13 @@ class Translations {
   static String get optional => translate('optional');
   static String get addComment => translate('add_comment');
   static String get failedToCreatePromoCode => translate('failed_to_create_promo_code');
+  static String get mostRecent => translate('most_recent');
+  static String get publishTime => translate('publish_time');
+  static String get expirationDateSort => translate('expiration_date_sort');
+  static String get alphabetical => translate('alphabetical');
+  static String get mostUpvoted => translate('most_upvoted');
+  static String get allServices => translate('all_services');
+  static String get service => translate('service');
 }
 
 final translationsProvider = FutureProvider<void>((ref) async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/repositories/promo_code_repository.dart';
+import '../../../../core/utils/translations.dart';
 
 class SortDropdown extends StatelessWidget {
   final Function(SortOption) onSortChanged;
@@ -17,25 +18,25 @@ class SortDropdown extends StatelessWidget {
         onSortChanged(sort);
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<SortOption>>[
-        const PopupMenuItem<SortOption>(
+        PopupMenuItem<SortOption>(
           value: SortOption.mostRecent,
-          child: Text('Most Recent'),
+          child: Text(Translations.mostRecent),
         ),
-        const PopupMenuItem<SortOption>(
+        PopupMenuItem<SortOption>(
           value: SortOption.publishTime,
-          child: Text('Publish Time'),
+          child: Text(Translations.publishTime),
         ),
-        const PopupMenuItem<SortOption>(
+        PopupMenuItem<SortOption>(
           value: SortOption.expirationDate,
-          child: Text('Expiration Date'),
+          child: Text(Translations.expirationDateSort),
         ),
-        const PopupMenuItem<SortOption>(
+        PopupMenuItem<SortOption>(
           value: SortOption.alphabetical,
-          child: Text('Alphabetical'),
+          child: Text(Translations.alphabetical),
         ),
-        const PopupMenuItem<SortOption>(
+        PopupMenuItem<SortOption>(
           value: SortOption.mostUpvoted,
-          child: Text('Most Upvoted'),
+          child: Text(Translations.mostUpvoted),
         ),
       ],
     );

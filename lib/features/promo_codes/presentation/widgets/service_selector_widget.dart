@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/data/services_data.dart';
+import '../../../../core/utils/translations.dart';
 
 class ServiceSelectorWidget extends StatelessWidget {
   final String? selectedService;
@@ -20,8 +21,8 @@ class ServiceSelectorWidget extends StatelessWidget {
     return DropdownButtonFormField<String>(
       value: selectedService,
       decoration: InputDecoration(
-        labelText: 'Service',
-        hintText: 'All Services',
+        labelText: Translations.service,
+        hintText: Translations.allServices,
         prefixIcon: const Icon(Icons.store),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -30,9 +31,9 @@ class ServiceSelectorWidget extends StatelessWidget {
       ),
       items: [
         if (showAllOption)
-          const DropdownMenuItem<String>(
+          DropdownMenuItem<String>(
             value: null,
-            child: Text('All Services'),
+            child: Text(Translations.allServices),
           ),
         ...ServicesData.services.map((service) {
           return DropdownMenuItem<String>(

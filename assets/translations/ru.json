@@ -89,5 +89,12 @@
   "please_enter_promo_code": "Пожалуйста, введите промокод",
   "optional": "Необязательно",
   "add_comment": "Добавьте дополнительную информацию",
-  "failed_to_create_promo_code": "Не удалось создать промокод"
+  "failed_to_create_promo_code": "Не удалось создать промокод",
+  "most_recent": "Самые новые",
+  "publish_time": "Время публикации",
+  "expiration_date_sort": "Дата истечения",
+  "alphabetical": "По алфавиту",
+  "most_upvoted": "Самые популярные",
+  "all_services": "Все сервисы",
+  "service": "Сервис"
 }

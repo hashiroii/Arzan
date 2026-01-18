@@ -267,7 +267,6 @@ class _PostPageState extends ConsumerState<PostPage> {
                 controller: _commentController,
                 decoration: InputDecoration(
                   labelText: '${Translations.comment} (${Translations.optional})',
-                  hintText: Translations.addComment,
                   prefixIcon: const Icon(Icons.comment),
                 ),
                 maxLines: 3,
@@ -278,7 +277,6 @@ class _PostPageState extends ConsumerState<PostPage> {
                 onTap: _selectExpirationDate,
                 child: InputDecorator(
                   decoration: InputDecoration(
-                    labelText: '${Translations.expirationDate} (${Translations.optional})',
                     prefixIcon: const Icon(Icons.calendar_today),
                   ),
                   child: Text(

@@ -10,6 +10,7 @@ import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/utils/translations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
+import '../../../promo_codes/presentation/providers/promo_code_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -175,10 +176,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             );
           },
-          (_) {
+          (_) async {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(Translations.userUnblockedSuccess)),
             );
+            ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
             setState(() {});
           },
         );

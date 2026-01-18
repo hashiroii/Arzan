@@ -226,7 +226,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Error loading promo codes',
+                        Translations.errorLoading,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 8),
