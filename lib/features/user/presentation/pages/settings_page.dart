@@ -497,18 +497,18 @@ class _LanguageTile extends StatelessWidget {
     return ListTile(
       leading: const Icon(Icons.language),
       title: const Text('Language'),
-      subtitle: Text(locale.languageCode == 'en' ? 'English' : 'Русский'),
+      subtitle: Text(locale.languageCode == 'en' ? Translations.english : Translations.russian),
       trailing: DropdownButton<Locale>(
         value: locale,
         underline: const SizedBox(),
-        items: const [
+        items: [
           DropdownMenuItem(
-            value: Locale('en'),
-            child: Text('English'),
+            value: const Locale('en'),
+            child: Text(Translations.english),
           ),
           DropdownMenuItem(
-            value: Locale('ru'),
-            child: Text('Русский'),
+            value: const Locale('ru'),
+            child: Text(Translations.russian),
           ),
         ],
         onChanged: (value) {
@@ -535,7 +535,7 @@ class _ThemeTile extends StatelessWidget {
     return Column(
       children: [
         RadioListTile<ThemeMode>(
-          title: const Text('System Default'),
+          title: Text(Translations.systemDefault),
           value: ThemeMode.system,
           groupValue: themeMode,
           onChanged: (value) {
@@ -545,7 +545,7 @@ class _ThemeTile extends StatelessWidget {
           },
         ),
         RadioListTile<ThemeMode>(
-          title: const Text('Light'),
+          title: Text(Translations.light),
           value: ThemeMode.light,
           groupValue: themeMode,
           onChanged: (value) {
@@ -555,7 +555,7 @@ class _ThemeTile extends StatelessWidget {
           },
         ),
         RadioListTile<ThemeMode>(
-          title: const Text('Dark'),
+          title: Text(Translations.dark),
           value: ThemeMode.dark,
           groupValue: themeMode,
           onChanged: (value) {

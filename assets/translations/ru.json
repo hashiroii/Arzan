@@ -72,5 +72,16 @@
   "push_notifications": "Push-уведомления",
   "receive_notifications": "Получать уведомления о новых промокодах",
   "app_name_label": "Название приложения",
-  "loading": "Загрузка..."
+  "loading": "Загрузка...",
+  "english": "English",
+  "russian": "Русский",
+  "delete_promo_code": "Удалить промокод",
+  "delete_promo_code_message": "Вы уверены, что хотите удалить этот промокод? Это действие нельзя отменить.",
+  "promo_code_deleted": "Промокод удален",
+  "failed_to_delete": "Не удалось удалить",
+  "error": "Ошибка",
+  "refresh": "Обновить",
+  "user_not_found": "Пользователь не найден",
+  "credibility": "Доверие",
+  "by": "от"
 }

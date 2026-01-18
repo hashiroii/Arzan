@@ -91,6 +91,17 @@ class Translations {
   static String get receiveNotifications => translate('receive_notifications');
   static String get appNameLabel => translate('app_name_label');
   static String get loading => translate('loading');
+  static String get english => translate('english');
+  static String get russian => translate('russian');
+  static String get deletePromoCode => translate('delete_promo_code');
+  static String get deletePromoCodeMessage => translate('delete_promo_code_message');
+  static String get promoCodeDeleted => translate('promo_code_deleted');
+  static String get failedToDelete => translate('failed_to_delete');
+  static String get error => translate('error');
+  static String get refresh => translate('refresh');
+  static String get userNotFound => translate('user_not_found');
+  static String get credibility => translate('credibility');
+  static String get by => translate('by');
 }
 
 final translationsProvider = FutureProvider<void>((ref) async {

@@ -41,7 +41,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
     result.fold(
       (failure) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${failure.message}')),
+          SnackBar(content: Text('${Translations.error}: ${failure.message}')),
         );
       },
       (promoCode) {
@@ -147,7 +147,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to vote: $e')),
+          SnackBar(content: Text('${Translations.failedToVote}: $e')),
         );
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
@@ -210,7 +210,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to block user: $e')),
+            SnackBar(content: Text('${Translations.failedToBlockUser}: $e')),
           );
         }
       }
@@ -221,19 +221,17 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Promo Code'),
-        content: const Text(
-          'Are you sure you want to delete this promo code? This action cannot be undone.',
-        ),
+        title: Text(Translations.deletePromoCode),
+        content: Text(Translations.deletePromoCodeMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(Translations.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+            child: Text(Translations.delete, style: const TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -248,14 +246,14 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
           (failure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error: ${failure.message ?? "Failed to delete"}'),
+                content: Text('${Translations.error}: ${failure.message ?? Translations.failedToDelete}'),
                 backgroundColor: AppColors.error,
               ),
             );
           },
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Promo code deleted')),
+              SnackBar(content: Text(Translations.promoCodeDeleted)),
             );
             Navigator.of(context).pop();
           },
@@ -271,7 +269,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
 
     if (_promoCode == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Promo Code Details')),
+        appBar: AppBar(title: Text(Translations.promoCodeDetails)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -289,7 +287,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Promo Code Details'),
+        title: Text(Translations.promoCodeDetails),
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
@@ -399,17 +397,16 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        promoCode.author!.displayName ?? 'Anonymous',
+                                        promoCode.author!.displayName ?? Translations.anonymous,
                                         style: Theme.of(context).textTheme.titleLarge,
                                       ),
                                     ),
                                     if (currentUser != null && 
-                                        !isOwner && 
                                         promoCode.authorId != currentUser.id)
                                       IconButton(
                                         icon: const Icon(Icons.block),
                                         onPressed: () => _blockUser(context),
-                                        tooltip: 'Block user',
+                                        tooltip: Translations.blockUser,
                                         color: AppColors.error,
                                       ),
                                   ],
@@ -424,7 +421,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      'Credibility: ${promoCode.author!.karma}',
+                                      '${Translations.credibility}: ${promoCode.author!.karma}',
                                       style: Theme.of(context).textTheme.bodyMedium,
                                     ),
                                   ],
@@ -439,7 +436,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                         const Divider(),
                         const SizedBox(height: 8),
                         Text(
-                          'Comment',
+                          Translations.comment,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         const SizedBox(height: 8),
@@ -462,14 +459,14 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                   children: [
                     _DetailRow(
                       icon: Icons.calendar_today,
-                      label: 'Published',
+                      label: Translations.published,
                       value: _formatDate(promoCode.publishDate),
                     ),
                     if (promoCode.expirationDate != null) ...[
                       const SizedBox(height: 16),
                       _DetailRow(
                         icon: Icons.access_time,
-                        label: 'Expires',
+                        label: Translations.expires,
                         value: _formatDate(promoCode.expirationDate!),
                         isExpired: isExpired,
                       ),
@@ -478,8 +475,8 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                       const SizedBox(height: 16),
                       _DetailRow(
                         icon: Icons.check_circle,
-                        label: 'Status',
-                        value: 'Active',
+                        label: Translations.status,
+                        value: Translations.active,
                         isExpired: false,
                       ),
                     ],

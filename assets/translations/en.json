@@ -72,5 +72,16 @@
   "push_notifications": "Push Notifications",
   "receive_notifications": "Receive notifications about new promo codes",
   "app_name_label": "App Name",
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "english": "English",
+  "russian": "Русский",
+  "delete_promo_code": "Delete Promo Code",
+  "delete_promo_code_message": "Are you sure you want to delete this promo code? This action cannot be undone.",
+  "promo_code_deleted": "Promo code deleted",
+  "failed_to_delete": "Failed to delete",
+  "error": "Error",
+  "refresh": "Refresh",
+  "user_not_found": "User not found",
+  "credibility": "Credibility",
+  "by": "by"
 }

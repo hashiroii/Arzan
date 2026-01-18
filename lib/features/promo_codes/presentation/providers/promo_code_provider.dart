@@ -70,10 +70,14 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
         if (promoCodes.isEmpty) {
           hasMore = false;
         } else {
-          lastDocumentId = promoCodes.last.id;
+          final sortedPromoCodes = _sortWithExpiredAtEnd(promoCodes);
+          lastDocumentId = sortedPromoCodes.last.id;
           final currentList = state.value ?? [];
+          final sortedCurrentList = currentList.isEmpty 
+              ? [] 
+              : _sortWithExpiredAtEnd(currentList);
           state = AsyncValue.data(
-            refresh ? promoCodes : [...currentList, ...promoCodes],
+            refresh ? sortedPromoCodes : [...sortedCurrentList, ...sortedPromoCodes],
           );
         }
       },
@@ -139,7 +143,23 @@ class PromoCodesNotifier extends StateNotifier<AsyncValue<List<PromoCode>>> {
       );
     }).toList();
 
-    state = AsyncValue.data(updatedList);
+    final sortedList = _sortWithExpiredAtEnd(updatedList);
+    state = AsyncValue.data(sortedList);
+  }
+
+  List<PromoCode> _sortWithExpiredAtEnd(List<PromoCode> promoCodes) {
+    final active = <PromoCode>[];
+    final expired = <PromoCode>[];
+    
+    for (final code in promoCodes) {
+      if (code.isExpired) {
+        expired.add(code);
+      } else {
+        active.add(code);
+      }
+    }
+    
+    return [...active, ...expired];
   }
 }
 

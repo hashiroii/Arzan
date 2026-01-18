@@ -134,9 +134,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               '   - Code: ${code.code}, Service: ${code.serviceName}, Author ID: ${code.authorId}',
             );
           }
+          final sortedCodes = _sortWithExpiredAtEnd(codes);
           if (mounted) {
             setState(() {
-              _userPromoCodes = codes;
+              _userPromoCodes = sortedCodes;
             });
           }
         },
@@ -157,6 +158,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
   }
 
+  List<PromoCode> _sortWithExpiredAtEnd(List<PromoCode> promoCodes) {
+    final active = <PromoCode>[];
+    final expired = <PromoCode>[];
+    
+    for (final code in promoCodes) {
+      if (code.isExpired) {
+        expired.add(code);
+      } else {
+        active.add(code);
+      }
+    }
+    
+    return [...active, ...expired];
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -164,15 +180,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Profile')),
+        appBar: AppBar(title: Text(Translations.profile)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Profile')),
-        body: const Center(child: Text('User not found')),
+        appBar: AppBar(title: Text(Translations.profile)),
+        body: Center(child: Text(Translations.userNotFound)),
       );
     }
 
@@ -185,7 +201,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _refreshData,
-            tooltip: 'Refresh',
+            tooltip: Translations.refresh,
           ),
           if (isCurrentUser)
             IconButton(
@@ -271,8 +287,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       children: [
                         const Icon(Icons.star, color: AppColors.black),
                         const SizedBox(width: 8),
-                        Text(
-                          'Credibility: ${_user!.karma}',
+                  Text(
+                    '${Translations.credibility}: ${_user!.karma}',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: AppColors.black,

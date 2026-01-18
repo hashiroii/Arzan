@@ -20,8 +20,4 @@ class LocaleNotifier extends StateNotifier<Locale> {
       state = Locale(languageCode);
     }
   }
-  
-  Future<void> reloadTranslations() async {
-    state = state;
-  }
 }
