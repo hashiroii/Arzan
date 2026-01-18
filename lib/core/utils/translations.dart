@@ -69,6 +69,28 @@ class Translations {
   static String get failedToVote => translate('failed_to_vote');
   static String copied(String code) => '${translate("copied")}: $code';
   static String get selected => translate('selected');
+  static String get blockedUsers => translate('blocked_users');
+  static String get noBlockedUsers => translate('no_blocked_users');
+  static String get usersBlocked => translate('users_blocked');
+  static String get failedToLoadBlockedUsers => translate('failed_to_load_blocked_users');
+  static String get anonymous => translate('anonymous');
+  static String get unblockUser => translate('unblock_user');
+  static String get blockUser => translate('block_user');
+  static String get blockUserMessage => translate('block_user_message');
+  static String get block => translate('block');
+  static String get unblock => translate('unblock');
+  static String get unblockUserMessage => translate('unblock_user_message');
+  static String get userBlockedSuccess => translate('user_blocked_success');
+  static String get userUnblockedSuccess => translate('user_unblocked_success');
+  static String get failedToBlockUser => translate('failed_to_block_user');
+  static String get failedToUnblockUser => translate('failed_to_unblock_user');
+  static String get signOut => translate('sign_out');
+  static String get signOutMessage => translate('sign_out_message');
+  static String get appearance => translate('appearance');
+  static String get pushNotifications => translate('push_notifications');
+  static String get receiveNotifications => translate('receive_notifications');
+  static String get appNameLabel => translate('app_name_label');
+  static String get loading => translate('loading');
 }
 
 final translationsProvider = FutureProvider<void>((ref) async {

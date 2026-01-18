@@ -28,11 +28,8 @@ class MyApp extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final translationsAsync = ref.watch(translationsProvider);
 
-    translationsAsync.whenData((_) async {
-      await Translations.load(locale);
-    });
-
-    return MaterialApp(
+    return translationsAsync.when(
+      data: (_) => MaterialApp(
       title: 'Arzan',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.getLightTheme(),
@@ -46,6 +43,31 @@ class MyApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       home: const MainScreen(),
+    ),
+      loading: () => MaterialApp(
+        title: 'Arzan',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.getLightTheme(),
+        darkTheme: AppTheme.getDarkTheme(),
+        themeMode: themeMode,
+        locale: locale,
+        home: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (error, stack) => MaterialApp(
+        title: 'Arzan',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.getLightTheme(),
+        darkTheme: AppTheme.getDarkTheme(),
+        themeMode: themeMode,
+        locale: locale,
+        home: Scaffold(
+          body: Center(
+            child: Text('Error loading translations: $error'),
+          ),
+        ),
+      ),
     );
   }
 }

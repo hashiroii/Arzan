@@ -172,21 +172,21 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Block User'),
+        title: Text(Translations.blockUser),
         content: Text(
-          'Are you sure you want to block ${_promoCode!.author!.displayName ?? 'this user'}? You will not see their promo codes anymore.',
+          Translations.blockUserMessage.replaceAll('this user', _promoCode!.author!.displayName ?? Translations.anonymous),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(Translations.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.error,
             ),
-            child: const Text('Block'),
+            child: Text(Translations.block),
           ),
         ],
       ),
@@ -203,7 +203,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('User blocked successfully')),
+            SnackBar(content: Text(Translations.userBlockedSuccess)),
           );
           Navigator.pop(context);
         }

@@ -147,16 +147,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unblock User'),
-        content: const Text('Are you sure you want to unblock this user?'),
+        title: Text(Translations.unblockUser),
+        content: Text(Translations.unblockUserMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(Translations.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Unblock'),
+            child: Text(Translations.unblock),
           ),
         ],
       ),
@@ -178,7 +178,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           },
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('User unblocked successfully')),
+              SnackBar(content: Text(Translations.userUnblockedSuccess)),
             );
             setState(() {}); // Refresh the UI
           },
@@ -191,19 +191,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: const Text(
-          'Are you sure you want to delete your account? This action cannot be undone.',
-        ),
+        title: Text(Translations.deleteAccount),
+        content: Text(Translations.deleteAccountMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(Translations.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(Translations.delete),
           ),
         ],
       ),
@@ -227,13 +225,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(Translations.settings),
         elevation: 0,
       ),
       body: ListView(
@@ -241,7 +238,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         children: [
           // Language Section
           _SettingsSection(
-            title: 'Language',
+            title: Translations.language,
             icon: Icons.language,
             children: [
               _LanguageTile(
@@ -260,7 +257,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
           // Theme Section
           _SettingsSection(
-            title: 'Appearance',
+            title: Translations.appearance,
             icon: Icons.palette,
             children: [
               _ThemeTile(
@@ -275,12 +272,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
           // Notifications Section
           _SettingsSection(
-            title: 'Notifications',
+            title: Translations.notifications,
             icon: Icons.notifications,
             children: [
               SwitchListTile(
-                title: const Text('Push Notifications'),
-                subtitle: const Text('Receive notifications about new promo codes'),
+                title: Text(Translations.pushNotifications),
+                subtitle: Text(Translations.receiveNotifications),
                 value: _notificationEnabled,
                 onChanged: (value) => _requestNotificationPermission(),
                 secondary: const Icon(Icons.notifications_outlined),
@@ -291,13 +288,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
           // Feedback Section
           _SettingsSection(
-            title: 'Feedback',
+            title: Translations.feedback,
             icon: Icons.feedback,
             children: [
               ListTile(
                 leading: const Icon(Icons.star),
-                title: const Text('Rate App'),
-                subtitle: const Text('Leave a review on Play Store / App Store'),
+                title: Text(Translations.rateApp),
+                subtitle: Text(Translations.leaveReview),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _openFeedback,
               ),
@@ -307,18 +304,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
           // About Section
           _SettingsSection(
-            title: 'About',
+            title: Translations.about,
             icon: Icons.info,
             children: [
               ListTile(
                 leading: const Icon(Icons.info_outline),
-                title: const Text('Version'),
-                subtitle: Text(_appVersion.isEmpty ? 'Loading...' : _appVersion),
+                title: Text(Translations.version),
+                subtitle: Text(_appVersion.isEmpty ? Translations.loading : _appVersion),
               ),
               ListTile(
                 leading: const Icon(Icons.apps),
-                title: const Text('App Name'),
-                subtitle: const Text('Arzan'),
+                title: Text(Translations.appNameLabel),
+                subtitle: Text(Translations.appName),
               ),
             ],
           ),
@@ -326,13 +323,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
           // Account Section
           _SettingsSection(
-            title: 'Account',
+            title: Translations.account,
             icon: Icons.account_circle,
             children: [
               ListTile(
                 leading: const Icon(Icons.logout),
-                title: const Text('Sign Out'),
-                subtitle: const Text('Sign out from your account'),
+                title: Text(Translations.signOut),
+                subtitle: Text(Translations.signOutMessage),
                 onTap: () async {
                   final authRepo = DependencyInjection.authRepository;
                   final result = await authRepo.signOut();
@@ -351,79 +348,81 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   );
                 },
               ),
-              Consumer(
-                builder: (context, ref, child) {
+              Builder(
+                builder: (context) {
                   final currentUser = ref.watch(currentUserProvider);
                   final blockedUserIds = currentUser?.blockedUsers ?? [];
                   
                   if (blockedUserIds.isEmpty) {
                     return ListTile(
                       leading: const Icon(Icons.block),
-                      title: const Text('Blocked Users'),
-                      subtitle: const Text('No blocked users'),
+                      title: Text(Translations.blockedUsers),
+                      subtitle: Text(Translations.noBlockedUsers),
                       enabled: false,
                     );
                   }
                   
                   return ExpansionTile(
                     leading: const Icon(Icons.block),
-                    title: const Text('Blocked Users'),
-                    subtitle: Text('${blockedUserIds.length} user(s) blocked'),
-                    children: FutureBuilder<List<Map<String, dynamic>>>(
-                      future: _loadBlockedUsers(blockedUserIds),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        
-                        if (snapshot.hasError || !snapshot.hasData) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Text('Failed to load blocked users'),
-                          );
-                        }
-                        
-                        final blockedUsers = snapshot.data!;
-                        if (blockedUsers.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Text('No blocked users'),
-                          );
-                        }
-                        
-                        return Column(
-                          children: blockedUsers.map((user) {
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundImage: user['photoUrl'] != null
-                                    ? NetworkImage(user['photoUrl'])
-                                    : null,
-                                child: user['photoUrl'] == null
-                                    ? Text(user['displayName']?[0] ?? 'U')
-                                    : null,
-                              ),
-                              title: Text(user['displayName'] ?? 'Anonymous'),
-                              subtitle: Text(user['email'] ?? ''),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.unblock),
-                                onPressed: () => _unblockUser(context, user['id']),
-                                tooltip: 'Unblock user',
-                              ),
+                    title: Text(Translations.blockedUsers),
+                    subtitle: Text('${blockedUserIds.length} ${Translations.usersBlocked}'),
+                    children: [
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: _loadBlockedUsers(blockedUserIds),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: CircularProgressIndicator(),
                             );
-                          }).toList(),
-                        );
-                      },
-                    ),
+                          }
+                          
+                          if (snapshot.hasError || !snapshot.hasData) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(Translations.failedToLoadBlockedUsers),
+                            );
+                          }
+                          
+                          final blockedUsers = snapshot.data!;
+                          if (blockedUsers.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(Translations.noBlockedUsers),
+                            );
+                          }
+                          
+                          return Column(
+                            children: blockedUsers.map((user) {
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage: user['photoUrl'] != null
+                                      ? NetworkImage(user['photoUrl'])
+                                      : null,
+                                  child: user['photoUrl'] == null
+                                      ? Text(user['displayName']?[0] ?? 'U')
+                                      : null,
+                                ),
+                                title: Text(user['displayName'] ?? Translations.anonymous),
+                                subtitle: Text(user['email'] ?? ''),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.block),
+                                  onPressed: () => _unblockUser(context, user['id']),
+                                  tooltip: Translations.unblockUser,
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
+                    ],
                   );
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.delete_forever),
-                title: const Text('Delete Account'),
-                subtitle: const Text('Permanently delete your account and data'),
+                title: Text(Translations.deleteAccount),
+                subtitle: Text(Translations.deleteAccountMessage),
                 onTap: _deleteAccount,
               ),
             ],
