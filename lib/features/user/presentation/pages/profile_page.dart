@@ -5,6 +5,7 @@ import '../../../../core/widgets/promo_code_card.dart';
 import '../../domain/entities/user.dart';
 import '../providers/user_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
+import '../../../../core/utils/translations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../promo_codes/presentation/pages/details_page.dart';
 import '../../../promo_codes/domain/entities/promo_code.dart';
@@ -196,7 +197,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(Translations.profile),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -260,7 +261,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
                   // Display Name
                   Text(
-                    _user!.displayName ?? 'Anonymous',
+                    _user!.displayName ?? Translations.anonymous,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
@@ -309,7 +310,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Promo Codes (${_userPromoCodes.length})',
+                    '${Translations.promoCodes} (${_userPromoCodes.length})',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
@@ -328,7 +329,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No promo codes yet',
+                              Translations.noPromoCodesYet,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ],
