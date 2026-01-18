@@ -1,7 +1,7 @@
 class Service {
   final String id;
   final String name;
-  final String logoUrl; // For now, we'll use a placeholder or asset path
+  final String logoUrl;
   final List<String> aliases;
 
   const Service({
@@ -19,25 +19,25 @@ class ServicesData {
     Service(
       id: 'dodo_pizza',
       name: 'Dodo Pizza',
-      logoUrl: '', // Will use icon fallback
+      logoUrl: '',
       aliases: ['dodo', 'pizza dodo', 'додо пицца', 'dodo pizza'],
     ),
     Service(
       id: 'airba_fresh',
       name: 'Airba Fresh',
-      logoUrl: '', // Will use icon fallback
+      logoUrl: '',
       aliases: ['airba', 'fresh', 'эйрба фреш', 'airba fresh'],
     ),
     Service(
       id: 'arbuz',
       name: 'Arbuz',
-      logoUrl: '', // Will use icon fallback
+      logoUrl: '',
       aliases: ['арбуз', 'arbuz'],
     ),
     Service(
       id: 'yandex_go',
       name: 'Yandex Go',
-      logoUrl: '', // Will use icon fallback
+      logoUrl: '',
       aliases: [
         'yandex',
         'яндекс го',
@@ -49,18 +49,17 @@ class ServicesData {
     Service(
       id: 'chocofood',
       name: 'Chocofood',
-      logoUrl: '', // Will use icon fallback
+      logoUrl: '',
       aliases: ['choco', 'чокофуд', 'chocofood'],
     ),
     Service(
       id: 'fix_price',
       name: 'Fix Price',
-      logoUrl: '', // Will use icon fallback
+      logoUrl: '',
       aliases: ['fixprice', 'фикс прайс', 'фикспрайс', 'fix price'],
     ),
   ];
 
-  // Smart search - finds services by name or alias
   static List<Service> searchServices(String query) {
     if (query.isEmpty) return services;
 

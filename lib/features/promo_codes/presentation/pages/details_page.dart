@@ -317,7 +317,6 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Service name
             Text(
               promoCode.serviceName,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -326,7 +325,6 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
             ),
             const SizedBox(height: 24),
 
-            // Promo Code - Biggest with Copy Button
             Row(
               children: [
                 Expanded(
@@ -344,7 +342,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                       child: Text(
                         promoCode.code,
                         style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                              color: AppColors.black, // Black text for better visibility on yellow
+                              color: AppColors.black,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 2,
                               fontFamily: 'monospace',
@@ -375,7 +373,6 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
             ),
             const SizedBox(height: 24),
 
-            // Author info with photo, name, and comment merged
             if (promoCode.author != null)
               Card(
                 child: Padding(

@@ -29,18 +29,19 @@ class _PostPageState extends ConsumerState<PostPage> {
   }
 
   Future<void> _selectExpirationDate() async {
+    if (!mounted) return;
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now().add(const Duration(days: 30)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       final time = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.now(),
       );
-      if (time != null) {
+      if (time != null && mounted) {
         setState(() {
           _expirationDate = DateTime(
             picked.year,
@@ -130,7 +131,6 @@ class _PostPageState extends ConsumerState<PostPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Service Selection with Search
               Autocomplete<Service>(
                 optionsBuilder: (TextEditingValue textEditingValue) {
                   if (textEditingValue.text.isEmpty) {
@@ -241,13 +241,12 @@ class _PostPageState extends ConsumerState<PostPage> {
                 ),
               const SizedBox(height: 16),
 
-              // Promo Code
               TextFormField(
                 controller: _codeController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: '${Translations.promoCode} *',
                   hintText: Translations.enterPromoCode,
-                  prefixIcon: Icon(Icons.confirmation_number),
+                  prefixIcon: const Icon(Icons.confirmation_number),
                 ),
                 textCapitalization: TextCapitalization.characters,
                 validator: (value) {
@@ -259,25 +258,23 @@ class _PostPageState extends ConsumerState<PostPage> {
               ),
               const SizedBox(height: 16),
 
-              // Comment
               TextFormField(
                 controller: _commentController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: '${Translations.comment} (${Translations.optional})',
                   hintText: Translations.addComment,
-                  prefixIcon: Icon(Icons.comment),
+                  prefixIcon: const Icon(Icons.comment),
                 ),
                 maxLines: 3,
               ),
               const SizedBox(height: 16),
 
-              // Expiration Date
               InkWell(
                 onTap: _selectExpirationDate,
                 child: InputDecorator(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: '${Translations.expirationDate} (${Translations.optional})',
-                    prefixIcon: Icon(Icons.calendar_today),
+                    prefixIcon: const Icon(Icons.calendar_today),
                   ),
                   child: Text(
                     _expirationDate == null
@@ -301,7 +298,6 @@ class _PostPageState extends ConsumerState<PostPage> {
                 ),
               const SizedBox(height: 32),
 
-              // Submit Button
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submit,
                 style: ElevatedButton.styleFrom(

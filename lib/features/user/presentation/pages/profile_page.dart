@@ -6,6 +6,7 @@ import '../../domain/entities/user.dart';
 import '../providers/user_provider.dart';
 import '../../../../core/utils/dependency_injection.dart';
 import '../../../../core/utils/translations.dart';
+import '../../../../core/utils/logger.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../promo_codes/presentation/pages/details_page.dart';
 import '../../../promo_codes/domain/entities/promo_code.dart';
@@ -61,7 +62,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     final targetUserId = widget.userId ?? ref.read(currentUserProvider)?.id;
     if (targetUserId == null) {
-      print('🔴 Profile: No user ID available');
       setState(() {
         _isLoading = false;
         _user = null;
@@ -69,8 +69,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       });
       return;
     }
-
-    print('🔵 Profile: Loading data for user ID: $targetUserId');
 
     try {
       final getUserUseCase = ref.read(getUserByIdProvider);
@@ -83,13 +81,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         await promoCodeRepo.recalculateUserKarma(targetUserId);
       }
 
-      // Load user after recalculating karma
       final userResult = await getUserUseCase(targetUserId);
 
-      // Handle user result
       userResult.fold(
         (failure) {
-          print('🔴 Profile: Error loading user: ${failure.message}');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -104,12 +99,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           });
         },
         (user) {
-          print('✅ Profile: User loaded successfully');
-          print('   - ID: ${user.id}');
-          print('   - Email: ${user.email}');
-          print('   - Display Name: ${user.displayName ?? "null"}');
-          print('   - Karma: ${user.karma}');
-          print('   - Photo URL: ${user.photoUrl ?? "null"}');
           if (mounted) {
             setState(() {
               _user = user;
@@ -118,10 +107,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         },
       );
 
-      // Handle promo codes result
       codesResult.fold(
         (failure) {
-          print('🔴 Profile: Error loading promo codes: ${failure.message}');
           if (mounted) {
             setState(() {
               _userPromoCodes = [];
@@ -129,12 +116,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           }
         },
         (codes) {
-          print('✅ Profile: Loaded ${codes.length} promo codes');
-          for (var code in codes) {
-            print(
-              '   - Code: ${code.code}, Service: ${code.serviceName}, Author ID: ${code.authorId}',
-            );
-          }
           final sortedCodes = _sortWithExpiredAtEnd(codes);
           if (mounted) {
             setState(() {
@@ -144,7 +125,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         },
       );
     } catch (e) {
-      print('🔴 Profile: Unexpected error: $e');
+      AppLogger.error('Profile: Unexpected error', e, StackTrace.current, 'ProfilePage');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -222,7 +203,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     );
                   },
                   (_) {
-                    // Success - auth state will update automatically
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },
                 );
@@ -233,7 +213,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Profile Header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -242,7 +221,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               ),
               child: Column(
                 children: [
-                  // Profile Photo
                   CircleAvatar(
                     radius: 50,
                     backgroundImage: _user!.photoUrl != null
@@ -259,21 +237,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Display Name
                   Text(
                     _user!.displayName ?? Translations.anonymous,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
 
-                  // Email
                   Text(
                     _user!.email,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),
 
-                  // Karma
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
@@ -303,7 +278,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               ),
             ),
 
-            // User's Promo Codes
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(

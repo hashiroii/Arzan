@@ -84,7 +84,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         
         if (shouldOpen == true) {
           await openAppSettings();
-          // Check again after opening settings
           await _checkNotificationPermission();
         }
       }
@@ -180,7 +179,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(Translations.userUnblockedSuccess)),
             );
-            setState(() {}); // Refresh the UI
+            setState(() {});
           },
         );
       }
@@ -270,7 +269,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           const SizedBox(height: 24),
 
-          // Notifications Section
           _SettingsSection(
             title: Translations.notifications,
             icon: Icons.notifications,
@@ -343,7 +341,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       );
                     },
                     (_) {
-                      // Success - auth state will update automatically
                     },
                   );
                 },
@@ -470,7 +467,7 @@ class _SettingsSection extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: theme.brightness == Brightness.dark 
                         ? theme.colorScheme.primary 
-                        : theme.colorScheme.onSurface, // Use onSurface for light theme
+                        : theme.colorScheme.onSurface,
                   ),
                 ),
               ],

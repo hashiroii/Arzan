@@ -41,13 +41,9 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
     try {
       Query<Map<String, dynamic>> query = firestore.collection('promoCodes');
 
-      // Apply service filter
       if (serviceFilter != null && serviceFilter.isNotEmpty) {
         query = query.where('serviceName', isEqualTo: serviceFilter);
-        // If filtering by service, don't use orderBy to avoid index requirement
-        // We'll sort in memory instead
       } else {
-        // Only use orderBy when not filtering to avoid composite index requirement
         switch (sortOption) {
           case SortOption.publishTime:
           case SortOption.mostRecent:
@@ -65,7 +61,6 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
         }
       }
 
-      // Apply pagination (only if we have orderBy)
       if (lastDocumentId != null && (serviceFilter == null || serviceFilter.isEmpty)) {
         final lastDoc = await firestore.collection('promoCodes').doc(lastDocumentId).get();
         query = query.startAfterDocument(lastDoc);
@@ -76,7 +71,6 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
       final snapshot = await query.get();
       var models = snapshot.docs.map((doc) => PromoCodeModel.fromFirestore(doc)).toList();
       
-      // Sort in memory if we filtered by service
       if (serviceFilter != null && serviceFilter.isNotEmpty) {
         switch (sortOption) {
           case SortOption.publishTime:

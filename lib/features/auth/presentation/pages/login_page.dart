@@ -28,7 +28,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           String errorMessage = 'Sign in failed';
           if (failure.message != null) {
             errorMessage = failure.message!;
-            // Check for common Google Sign-In errors
             if (failure.message!.contains('Firestore database not created') ||
                 failure.message!.contains('does not exist')) {
               errorMessage = 'Firestore Database Not Created!\n\nCreate it:\n1. Go to Firebase Console\n2. Click Firestore Database\n3. Click "Create database"\n4. Choose "Test mode"\n5. Select location\n6. Click "Enable"\n\nOr click: https://console.firebase.google.com/project/arzan-a8f6d/firestore';
@@ -43,7 +42,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               errorMessage = 'Google Sign-In app not found. Check package name matches Firebase.';
             } else if (failure.message!.contains('cancelled') ||
                 failure.message!.toLowerCase().contains('cancel')) {
-              // Don't show error for cancellation
               return;
             }
           }

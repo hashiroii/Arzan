@@ -115,10 +115,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // Banner
             SliverToBoxAdapter(child: BannerWidget()),
 
-            // Service filter and sort
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -157,7 +155,6 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ),
 
-            // Promo codes list
             promoCodesAsync.when(
               data: (promoCodes) {
                 final blockedUserIds = currentUser?.blockedUsers ?? [];
