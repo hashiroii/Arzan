@@ -71,9 +71,9 @@ class _PostPageState extends ConsumerState<PostPage> {
     });
 
     if (_selectedService == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(Translations.pleaseSelectService)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(Translations.pleaseSelectService)));
       setState(() {
         _isSubmitting = false;
       });
@@ -131,6 +131,7 @@ class _PostPageState extends ConsumerState<PostPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Service Selection with Search
               Autocomplete<Service>(
                 optionsBuilder: (TextEditingValue textEditingValue) {
                   if (textEditingValue.text.isEmpty) {
@@ -139,92 +140,96 @@ class _PostPageState extends ConsumerState<PostPage> {
                   return ServicesData.searchServices(textEditingValue.text);
                 },
                 displayStringForOption: (Service service) => service.name,
-                fieldViewBuilder: (
-                  BuildContext context,
-                  TextEditingController textEditingController,
-                  FocusNode focusNode,
-                  VoidCallback onFieldSubmitted,
-                ) {
-                  if (_selectedService != null) {
-                    textEditingController.text = _selectedService!;
-                  }
-                  return TextFormField(
-                    controller: textEditingController,
-                    focusNode: focusNode,
-                    decoration: InputDecoration(
-                      labelText: '${Translations.serviceName} *',
-                      hintText: Translations.searchService,
-                      prefixIcon: const Icon(Icons.store),
-                      suffixIcon: _selectedService != null
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                setState(() {
-                                  _selectedService = null;
-                                  textEditingController.clear();
-                                });
-                              },
-                            )
-                          : null,
-                    ),
-                    validator: (value) {
-                      if (_selectedService == null) {
-                        return Translations.pleaseSelectService;
+                fieldViewBuilder:
+                    (
+                      BuildContext context,
+                      TextEditingController textEditingController,
+                      FocusNode focusNode,
+                      VoidCallback onFieldSubmitted,
+                    ) {
+                      if (_selectedService != null) {
+                        textEditingController.text = _selectedService!;
                       }
-                      return null;
+                      return TextFormField(
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          labelText: '${Translations.serviceName} *',
+                          hintText: Translations.searchService,
+                          prefixIcon: const Icon(Icons.store),
+                          suffixIcon: _selectedService != null
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedService = null;
+                                      textEditingController.clear();
+                                    });
+                                  },
+                                )
+                              : null,
+                        ),
+                        validator: (value) {
+                          if (_selectedService == null) {
+                            return Translations.pleaseSelectService;
+                          }
+                          return null;
+                        },
+                      );
                     },
-                  );
-                },
                 onSelected: (Service service) {
                   setState(() {
                     _selectedService = service.name;
                   });
                 },
-                optionsViewBuilder: (
-                  BuildContext context,
-                  AutocompleteOnSelected<Service> onSelected,
-                  Iterable<Service> options,
-                ) {
-                  return Align(
-                    alignment: Alignment.topLeft,
-                    child: Material(
-                      elevation: 4.0,
-                      borderRadius: BorderRadius.circular(8),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxHeight: 200),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          padding: EdgeInsets.zero,
-                          itemCount: options.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final service = options.elementAt(index);
-                            return ListTile(
-                              leading: Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Icon(
-                                  Icons.store,
-                                  size: 20,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                              title: Text(service.name),
-                              onTap: () {
-                                onSelected(service);
+                optionsViewBuilder:
+                    (
+                      BuildContext context,
+                      AutocompleteOnSelected<Service> onSelected,
+                      Iterable<Service> options,
+                    ) {
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Material(
+                          elevation: 4.0,
+                          borderRadius: BorderRadius.circular(8),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 200),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              padding: EdgeInsets.zero,
+                              itemCount: options.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                final service = options.elementAt(index);
+                                return ListTile(
+                                  leading: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primaryContainer,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Icon(
+                                      Icons.store,
+                                      size: 20,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                  ),
+                                  title: Text(service.name),
+                                  onTap: () {
+                                    onSelected(service);
+                                  },
+                                );
                               },
-                            );
-                          },
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                },
+                      );
+                    },
               ),
               if (_selectedService != null)
                 Padding(
@@ -298,6 +303,7 @@ class _PostPageState extends ConsumerState<PostPage> {
                 ),
               const SizedBox(height: 32),
 
+              // Submit Button
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submit,
                 style: ElevatedButton.styleFrom(
