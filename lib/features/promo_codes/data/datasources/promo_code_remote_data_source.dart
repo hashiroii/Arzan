@@ -264,7 +264,6 @@ class PromoCodeRemoteDataSourceImpl implements PromoCodeRemoteDataSource {
           .map((doc) => PromoCodeModel.fromFirestore(doc))
           .toList();
       
-      // Sort by publishDate descending in memory
       models.sort((a, b) => b.publishDate.compareTo(a.publishDate));
       
       return models;

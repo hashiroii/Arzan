@@ -328,8 +328,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             _refreshData();
                           }
                         },
-                        onUpvote:
-                            null, // Disable voting on own codes in profile
+                        onUpvote: null,
                         onDownvote: null,
                       ),
                     ),

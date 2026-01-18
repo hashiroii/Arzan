@@ -174,7 +174,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Temporary: Anonymous Sign-In for testing
                 TextButton(
                   onPressed: _isLoading
                       ? null
