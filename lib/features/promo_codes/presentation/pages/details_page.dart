@@ -17,10 +17,7 @@ import '../../../user/domain/repositories/user_repository.dart';
 class DetailsPage extends ConsumerStatefulWidget {
   final String promoCodeId;
 
-  const DetailsPage({
-    super.key,
-    required this.promoCodeId,
-  });
+  const DetailsPage({super.key, required this.promoCodeId});
 
   @override
   ConsumerState<DetailsPage> createState() => _DetailsPageState();
@@ -55,9 +52,9 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
   Future<void> _handleVote(bool isUpvote) async {
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(Translations.pleaseSignInToVote)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(Translations.pleaseSignInToVote)));
       return;
     }
 
@@ -130,13 +127,11 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
           await downvoteUseCase(widget.promoCodeId, currentUser.id);
         }
       }
-      
-      ref.read(promoCodesNotifierProvider.notifier).updatePromoCodeVote(
-        widget.promoCodeId,
-        currentUser.id,
-        isUpvote,
-      );
-      
+
+      ref
+          .read(promoCodesNotifierProvider.notifier)
+          .updatePromoCodeVote(widget.promoCodeId, currentUser.id, isUpvote);
+
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) {
           _loadPromoCode().catchError((e) {
@@ -161,20 +156,23 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
   void _sharePromoCode() {
     if (_promoCode != null) {
       Share.share(
-        'Check out this promo code for ${_promoCode!.serviceName}: ${_promoCode!.code}',
+        '${Translations.promocodeShared} ${_promoCode!.serviceName}: ${_promoCode!.code}',
       );
     }
   }
 
   Future<void> _blockUser(BuildContext context) async {
     if (_promoCode?.author == null) return;
-    
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(Translations.blockUser),
         content: Text(
-          Translations.blockUserMessage.replaceAll('this user', _promoCode!.author!.displayName ?? Translations.anonymous),
+          Translations.blockUserMessage.replaceAll(
+            'this user',
+            _promoCode!.author!.displayName ?? Translations.anonymous,
+          ),
         ),
         actions: [
           TextButton(
@@ -183,9 +181,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: Text(Translations.block),
           ),
         ],
@@ -205,7 +201,11 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
           (failure) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${Translations.failedToBlockUser}: ${failure.message}')),
+                SnackBar(
+                  content: Text(
+                    '${Translations.failedToBlockUser}: ${failure.message}',
+                  ),
+                ),
               );
             }
           },
@@ -216,7 +216,9 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                 SnackBar(content: Text(Translations.userBlockedSuccess)),
               );
               await Future.delayed(const Duration(milliseconds: 500));
-              ref.read(promoCodesNotifierProvider.notifier).loadPromoCodes(refresh: true);
+              ref
+                  .read(promoCodesNotifierProvider.notifier)
+                  .loadPromoCodes(refresh: true);
               if (mounted) {
                 Navigator.pop(context);
               }
@@ -247,7 +249,10 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(Translations.delete, style: const TextStyle(color: AppColors.error)),
+            child: Text(
+              Translations.delete,
+              style: const TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -257,12 +262,17 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
       final currentUser = ref.read(currentUserProvider);
       if (currentUser != null) {
         final repo = DependencyInjection.promoCodeRepository;
-        final result = await repo.deletePromoCode(_promoCode!.id, currentUser.id);
+        final result = await repo.deletePromoCode(
+          _promoCode!.id,
+          currentUser.id,
+        );
         result.fold(
           (failure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('${Translations.error}: ${failure.message ?? Translations.failedToDelete}'),
+                content: Text(
+                  '${Translations.error}: ${failure.message ?? Translations.failedToDelete}',
+                ),
                 backgroundColor: AppColors.error,
               ),
             );
@@ -292,10 +302,12 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
 
     final promoCode = _promoCode!;
     final isExpired = promoCode.isExpired;
-    final isUpvoted = currentUser != null && 
+    final isUpvoted =
+        currentUser != null &&
         promoCode.upvotedBy.contains(currentUser.id) &&
         !promoCode.downvotedBy.contains(currentUser.id);
-    final isDownvoted = currentUser != null && 
+    final isDownvoted =
+        currentUser != null &&
         promoCode.downvotedBy.contains(currentUser.id) &&
         !promoCode.upvotedBy.contains(currentUser.id);
 
@@ -305,10 +317,7 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
       appBar: AppBar(
         title: Text(Translations.promoCodeDetails),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: _sharePromoCode,
-          ),
+          IconButton(icon: const Icon(Icons.share), onPressed: _sharePromoCode),
           if (isOwner)
             IconButton(
               icon: const Icon(Icons.delete),
@@ -330,17 +339,12 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.star,
-                    color: theme.colorScheme.primary,
-                    size: 24,
-                  ),
+                  Icon(Icons.star, color: theme.colorScheme.primary, size: 24),
                   const SizedBox(width: 8),
                   Text(
                     '${Translations.karma}: ${promoCode.karma}',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ],
@@ -349,9 +353,9 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
             const SizedBox(height: 24),
             Text(
               promoCode.serviceName,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
 
@@ -359,7 +363,10 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
               children: [
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 32,
+                      horizontal: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(12),
@@ -371,7 +378,8 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                     child: Center(
                       child: Text(
                         promoCode.code,
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(
                               color: AppColors.black,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 2,
@@ -420,10 +428,13 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                             backgroundColor: theme.colorScheme.primary,
                             child: promoCode.author!.photoUrl == null
                                 ? Text(
-                                    promoCode.author!.displayName?[0].toUpperCase() ?? 'U',
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                          color: AppColors.black,
-                                        ),
+                                    promoCode.author!.displayName?[0]
+                                            .toUpperCase() ??
+                                        'U',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(color: AppColors.black),
                                   )
                                 : null,
                           ),
@@ -436,11 +447,14 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        promoCode.author!.displayName ?? Translations.anonymous,
-                                        style: Theme.of(context).textTheme.titleLarge,
+                                        promoCode.author!.displayName ??
+                                            Translations.anonymous,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleLarge,
                                       ),
                                     ),
-                                    if (currentUser != null && 
+                                    if (currentUser != null &&
                                         promoCode.authorId != currentUser.id)
                                       TextButton.icon(
                                         icon: const Icon(Icons.block, size: 18),
@@ -463,7 +477,9 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                                     const SizedBox(width: 4),
                                     Text(
                                       '${Translations.credibility}: ${promoCode.author!.karma}',
-                                      style: Theme.of(context).textTheme.bodyMedium,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
                                     ),
                                   ],
                                 ),
@@ -472,7 +488,8 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                           ),
                         ],
                       ),
-                      if (promoCode.comment != null && promoCode.comment!.isNotEmpty) ...[
+                      if (promoCode.comment != null &&
+                          promoCode.comment!.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         const Divider(),
                         const SizedBox(height: 8),
@@ -506,7 +523,9 @@ class _DetailsPageState extends ConsumerState<DetailsPage> {
                     if (promoCode.expirationDate != null) ...[
                       const SizedBox(height: 16),
                       _DetailRow(
-                        icon: isExpired ? Icons.cancel_outlined : Icons.access_time,
+                        icon: isExpired
+                            ? Icons.cancel_outlined
+                            : Icons.access_time,
                         label: Translations.expires,
                         value: _formatDate(promoCode.expirationDate!),
                         isExpired: isExpired,
@@ -570,17 +589,14 @@ class _DetailRow extends StatelessWidget {
         Icon(icon, size: 20, color: isExpired ? AppColors.error : null),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
         ),
         Text(
           value,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isExpired ? AppColors.error : null,
-              ),
+            fontWeight: FontWeight.bold,
+            color: isExpired ? AppColors.error : null,
+          ),
         ),
       ],
     );

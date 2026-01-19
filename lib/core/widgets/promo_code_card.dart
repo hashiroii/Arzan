@@ -1,3 +1,4 @@
+import 'package:arzan/core/utils/translations.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../features/promo_codes/domain/entities/promo_code.dart';
@@ -22,11 +23,11 @@ class PromoCodeCard extends StatelessWidget {
   });
 
   bool get isUpvoted =>
-      currentUserId != null && 
+      currentUserId != null &&
       promoCode.upvotedBy.contains(currentUserId!) &&
       !promoCode.downvotedBy.contains(currentUserId!);
   bool get isDownvoted =>
-      currentUserId != null && 
+      currentUserId != null &&
       promoCode.downvotedBy.contains(currentUserId!) &&
       !promoCode.upvotedBy.contains(currentUserId!);
 
@@ -39,9 +40,7 @@ class PromoCodeCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -131,7 +130,9 @@ class PromoCodeCard extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(0.1),
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
@@ -158,9 +159,11 @@ class PromoCodeCard extends StatelessWidget {
                         if (promoCode.author != null) ...[
                           const SizedBox(height: 4),
                           Text(
-                            'by ${promoCode.author!.displayName ?? 'Anonymous'}',
+                            '${Translations.by} ${promoCode.author!.displayName ?? 'Anonymous'}',
                             style: AppTextStyles.caption.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.6,
+                              ),
                             ),
                           ),
                         ],
@@ -172,7 +175,10 @@ class PromoCodeCard extends StatelessWidget {
               const SizedBox(height: 20),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 20,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -199,7 +205,8 @@ class PromoCodeCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (promoCode.comment != null && promoCode.comment!.isNotEmpty) ...[
+              if (promoCode.comment != null &&
+                  promoCode.comment!.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -235,13 +242,17 @@ class PromoCodeCard extends StatelessWidget {
                           Flexible(
                             child: Text(
                               isExpired
-                                  ? 'Expired'
-                                  : 'Expires ${_formatDate(promoCode.expirationDate!)}',
+                                  ? Translations.expired
+                                  : '${Translations.expires} ${_formatDate(promoCode.expirationDate!)}',
                               style: AppTextStyles.caption.copyWith(
                                 color: isExpired
                                     ? AppColors.error
-                                    : theme.colorScheme.onSurface.withOpacity(0.7),
-                                fontWeight: isExpired ? FontWeight.w600 : FontWeight.normal,
+                                    : theme.colorScheme.onSurface.withOpacity(
+                                        0.7,
+                                      ),
+                                fontWeight: isExpired
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
                               ),
                             ),
                           ),
@@ -259,9 +270,11 @@ class PromoCodeCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'No expiration',
+                            Translations.noExpiration,
                             style: AppTextStyles.caption.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.7),
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.7,
+                              ),
                             ),
                           ),
                         ],
@@ -301,9 +314,9 @@ class PromoCodeCard extends StatelessWidget {
     } else if (difference.inDays > 0) {
       return '${difference.inDays}d left';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}h left';
+      return '${difference.inHours} left';
     } else {
-      return 'Expired';
+      return Translations.expired;
     }
   }
 }
@@ -367,4 +380,3 @@ class _VoteButton extends StatelessWidget {
     );
   }
 }
-

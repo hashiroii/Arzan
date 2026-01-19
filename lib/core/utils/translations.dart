@@ -65,14 +65,16 @@ class Translations {
   static String get pleaseSignInToVote => translate('please_sign_in_to_vote');
   static String get pleaseSignInToPost => translate('please_sign_in_to_post');
   static String get pleaseSelectService => translate('please_select_service');
-  static String get promoCodePostedSuccess => translate('promo_code_posted_success');
+  static String get promoCodePostedSuccess =>
+      translate('promo_code_posted_success');
   static String get failedToVote => translate('failed_to_vote');
   static String copied(String code) => '${translate("copied")}: $code';
   static String get selected => translate('selected');
   static String get blockedUsers => translate('blocked_users');
   static String get noBlockedUsers => translate('no_blocked_users');
   static String get usersBlocked => translate('users_blocked');
-  static String get failedToLoadBlockedUsers => translate('failed_to_load_blocked_users');
+  static String get failedToLoadBlockedUsers =>
+      translate('failed_to_load_blocked_users');
   static String get anonymous => translate('anonymous');
   static String get unblockUser => translate('unblock_user');
   static String get blockUser => translate('block_user');
@@ -94,7 +96,8 @@ class Translations {
   static String get english => translate('english');
   static String get russian => translate('russian');
   static String get deletePromoCode => translate('delete_promo_code');
-  static String get deletePromoCodeMessage => translate('delete_promo_code_message');
+  static String get deletePromoCodeMessage =>
+      translate('delete_promo_code_message');
   static String get promoCodeDeleted => translate('promo_code_deleted');
   static String get failedToDelete => translate('failed_to_delete');
   static String get error => translate('error');
@@ -104,10 +107,12 @@ class Translations {
   static String get by => translate('by');
   static String get searchService => translate('search_service');
   static String get enterPromoCode => translate('enter_promo_code');
-  static String get pleaseEnterPromoCode => translate('please_enter_promo_code');
+  static String get pleaseEnterPromoCode =>
+      translate('please_enter_promo_code');
   static String get optional => translate('optional');
   static String get addComment => translate('add_comment');
-  static String get failedToCreatePromoCode => translate('failed_to_create_promo_code');
+  static String get failedToCreatePromoCode =>
+      translate('failed_to_create_promo_code');
   static String get mostRecent => translate('most_recent');
   static String get publishTime => translate('publish_time');
   static String get expirationDateSort => translate('expiration_date_sort');
@@ -115,7 +120,7 @@ class Translations {
   static String get mostUpvoted => translate('most_upvoted');
   static String get allServices => translate('all_services');
   static String get service => translate('service');
-  static String get expires => translate('expires');
+  static String get promocodeShared => translate('promocode_shared');
   static String daysLeft(int days) => '$days ${translate('days_left')}';
   static String hoursLeft(int hours) => '$hours ${translate('hours_left')}';
 }

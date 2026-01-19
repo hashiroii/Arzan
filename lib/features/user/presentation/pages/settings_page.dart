@@ -495,14 +495,33 @@ class _LanguageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSystemLocale = locale.languageCode == 
+        (PlatformDispatcher.instance.locale.languageCode == 'ru' ? 'ru' : 'en');
+    
     return ListTile(
       leading: const Icon(Icons.language),
-      title: const Text('Language'),
-      subtitle: Text(locale.languageCode == 'en' ? Translations.english : Translations.russian),
-      trailing: DropdownButton<Locale>(
+      title: Text(Translations.language),
+      subtitle: Text(
+        locale.languageCode == 'en' 
+            ? Translations.english 
+            : locale.languageCode == 'ru'
+                ? Translations.russian
+                : Translations.systemDefault,
+      ),
+      trailing: DropdownButton<Locale?>(
         value: locale,
         underline: const SizedBox(),
         items: [
+          DropdownMenuItem<Locale?>(
+            value: null,
+            child: Row(
+              children: [
+                const Icon(Icons.settings, size: 18),
+                const SizedBox(width: 8),
+                Text(Translations.systemDefault),
+              ],
+            ),
+          ),
           DropdownMenuItem(
             value: const Locale('en'),
             child: Text(Translations.english),
@@ -513,7 +532,13 @@ class _LanguageTile extends StatelessWidget {
           ),
         ],
         onChanged: (value) {
-          if (value != null) {
+          if (value == null) {
+            final systemLocale = PlatformDispatcher.instance.locale;
+            final systemLanguageCode = AppConstants.supportedLanguages.contains(systemLocale.languageCode)
+                ? systemLocale.languageCode
+                : AppConstants.defaultLanguage;
+            onLocaleChanged(Locale(systemLanguageCode));
+          } else {
             onLocaleChanged(value);
           }
         },

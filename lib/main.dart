@@ -15,8 +15,17 @@ import 'features/user/presentation/pages/settings_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DependencyInjection.init();
-  await Translations.load(const Locale('en'));
-  runApp(const ProviderScope(child: MyApp()));
+  
+  final localeNotifier = LocaleNotifier();
+  final initialLocale = localeNotifier.state;
+  await Translations.load(initialLocale);
+  
+  runApp(ProviderScope(
+    overrides: [
+      localeProvider.overrideWith((ref) => localeNotifier),
+    ],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends ConsumerWidget {

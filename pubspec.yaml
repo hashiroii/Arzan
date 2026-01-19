@@ -60,6 +60,7 @@ dependencies:
   share_plus: ^10.1.0
   package_info_plus: ^8.0.2
   permission_handler: ^11.3.1
+  shared_preferences: ^2.3.3
   
   # UI Components
   flutter_svg: ^2.0.10+1
