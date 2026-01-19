@@ -531,13 +531,15 @@ class _LanguageTile extends StatelessWidget {
             child: Text(Translations.russian),
           ),
         ],
-        onChanged: (value) {
+        onChanged: (value) async {
           if (value == null) {
             final systemLocale = PlatformDispatcher.instance.locale;
             final systemLanguageCode = AppConstants.supportedLanguages.contains(systemLocale.languageCode)
                 ? systemLocale.languageCode
                 : AppConstants.defaultLanguage;
-            onLocaleChanged(Locale(systemLanguageCode));
+            final systemLocaleFinal = Locale(systemLanguageCode);
+            onLocaleChanged(systemLocaleFinal);
+            await SharedPreferences.getInstance().then((prefs) => prefs.remove('selected_locale'));
           } else {
             onLocaleChanged(value);
           }
